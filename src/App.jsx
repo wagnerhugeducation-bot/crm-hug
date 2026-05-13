@@ -17,6 +17,7 @@ import OrgaoForm from '@/pages/orgaos/OrgaoForm';
 import OrgaoDetail from '@/pages/orgaos/OrgaoDetail';
 import ContatosList from '@/pages/contatos/ContatosList';
 import ContatoForm from '@/pages/contatos/ContatoForm';
+import ContatoDetail from '@/pages/contatos/ContatoDetail';
 import OportunidadesList from '@/pages/oportunidades/OportunidadesList';
 import OportunidadeForm from '@/pages/oportunidades/OportunidadeForm';
 import OportunidadeDetail from '@/pages/oportunidades/OportunidadeDetail';
@@ -61,6 +62,7 @@ const AuthenticatedApp = () => {
         {/* Contatos */}
         <Route path="/contatos" element={<ContatosList />} />
         <Route path="/contatos/novo" element={<ContatoForm />} />
+        <Route path="/contatos/:id" element={<ContatoDetail />} />
         <Route path="/contatos/:id/editar" element={<ContatoForm />} />
 
         {/* Oportunidades */}

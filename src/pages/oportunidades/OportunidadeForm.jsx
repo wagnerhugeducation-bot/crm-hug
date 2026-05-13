@@ -10,6 +10,7 @@ import PageHeader from '@/components/ui/PageHeader';
 import { toast } from 'sonner';
 import { ArrowLeft, Save } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
 const defaultForm = {
   orgao_id: '', nome: '', descricao: '', valor_estimado: '',
@@ -18,7 +19,15 @@ const defaultForm = {
   data_entrega_proposta: '', probabilidade: '', concorrentes: '', notas: ''
 };
 
-const LICITACOES = ['Pregão Eletrônico', 'Pregão Presencial', 'Concorrência', 'Tomada de Preços', 'Convite', 'Dispensa', 'Inexigibilidade', 'RDC', 'Leilão'];
+const LICITACOES = [
+  'Pregão Eletrônico', 'Pregão Presencial', 'Concorrência',
+  'Tomada de Preços', 'Convite', 'Dispensa', 'Inexigibilidade', 'RDC', 'Leilão'
+];
+
+function FieldError({ msg }) {
+  if (!msg) return null;
+  return <p className="text-xs text-destructive mt-1">{msg}</p>;
+}
 
 export default function OportunidadeForm() {
   const { id } = useParams();
@@ -27,6 +36,7 @@ export default function OportunidadeForm() {
   const isEdit = !!id && id !== 'nova';
   const [form, setForm] = useState(defaultForm);
   const [orgaos, setOrgaos] = useState([]);
+  const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(isEdit);
 
@@ -35,8 +45,9 @@ export default function OportunidadeForm() {
     const orgaoId = params.get('orgao_id');
     base44.entities.OrgaoPublico.list().then(res => setOrgaos(res));
     if (isEdit) {
-      base44.entities.Oportunidade.filter({ id }).then(res => {
-        if (res[0]) setForm({ ...defaultForm, ...res[0] });
+      base44.entities.Oportunidade.list().then(res => {
+        const found = res.find(r => r.id === id);
+        if (found) setForm({ ...defaultForm, ...found });
         setIsFetching(false);
       });
     } else if (orgaoId) {
@@ -44,128 +55,246 @@ export default function OportunidadeForm() {
     }
   }, [id]);
 
-  const set = (field, value) => setForm(f => ({ ...f, [field]: value }));
+  const set = (field, value) => {
+    setForm(f => ({ ...f, [field]: value }));
+    if (errors[field]) setErrors(e => ({ ...e, [field]: null }));
+  };
+
+  const validate = () => {
+    const errs = {};
+    if (!form.nome.trim()) errs.nome = 'Nome da oportunidade é obrigatório.';
+    if (form.valor_estimado && isNaN(Number(form.valor_estimado))) {
+      errs.valor_estimado = 'Valor deve ser numérico.';
+    }
+    if (form.probabilidade) {
+      const p = Number(form.probabilidade);
+      if (isNaN(p) || p < 0 || p > 100) errs.probabilidade = 'Probabilidade deve ser entre 0 e 100.';
+    }
+    if (form.data_abertura && form.data_fechamento && form.data_abertura > form.data_fechamento) {
+      errs.data_fechamento = 'Data de fechamento deve ser após a data de abertura.';
+    }
+    return errs;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.nome.trim()) { toast.error('Nome é obrigatório.'); return; }
-    setIsLoading(true);
-    const payload = { ...form, valor_estimado: form.valor_estimado ? Number(form.valor_estimado) : null, probabilidade: form.probabilidade ? Number(form.probabilidade) : null };
-    if (isEdit) {
-      await base44.entities.Oportunidade.update(id, payload);
-      toast.success('Oportunidade atualizada.');
-    } else {
-      await base44.entities.Oportunidade.create(payload);
-      toast.success('Oportunidade cadastrada.');
+    const errs = validate();
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      toast.error('Corrija os campos destacados.');
+      return;
     }
-    navigate('/oportunidades');
+    setIsLoading(true);
+    try {
+      const payload = {
+        ...form,
+        valor_estimado: form.valor_estimado !== '' ? Number(form.valor_estimado) : null,
+        probabilidade: form.probabilidade !== '' ? Number(form.probabilidade) : null,
+      };
+      if (isEdit) {
+        await base44.entities.Oportunidade.update(id, payload);
+        toast.success('Oportunidade atualizada com sucesso.');
+      } else {
+        await base44.entities.Oportunidade.create(payload);
+        toast.success('Oportunidade cadastrada com sucesso.');
+      }
+      navigate('/oportunidades');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  if (isFetching) return <div className="flex justify-center py-12"><div className="w-7 h-7 border-4 border-primary/30 border-t-primary rounded-full animate-spin" /></div>;
+  if (isFetching) {
+    return (
+      <div className="flex justify-center py-12">
+        <div className="w-7 h-7 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div>
       <PageHeader
         title={isEdit ? 'Editar Oportunidade' : 'Nova Oportunidade'}
-        actions={<Link to="/oportunidades"><Button variant="outline" className="gap-2"><ArrowLeft className="w-4 h-4" /> Voltar</Button></Link>}
+        subtitle="Preencha os dados da oportunidade comercial"
+        actions={
+          <Link to="/oportunidades">
+            <Button variant="outline" className="gap-2"><ArrowLeft className="w-4 h-4" /> Voltar</Button>
+          </Link>
+        }
       />
-      <form onSubmit={handleSubmit} className="max-w-3xl">
-        <div className="bg-card rounded-xl border border-border p-6 space-y-6">
-          {/* Geral */}
-          <div>
-            <h3 className="text-sm font-semibold mb-4 pb-2 border-b border-border">Informações Gerais</h3>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="sm:col-span-2">
-                <Label>Órgão Público</Label>
-                <Select value={form.orgao_id} onValueChange={v => set('orgao_id', v)}>
-                  <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione o órgão" /></SelectTrigger>
-                  <SelectContent>{orgaos.map(o => <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="sm:col-span-2">
-                <Label>Nome da Oportunidade *</Label>
-                <Input value={form.nome} onChange={e => set('nome', e.target.value)} placeholder="Ex: Fornecimento de Software de Gestão" className="mt-1" />
-              </div>
-              <div className="sm:col-span-2">
-                <Label>Descrição</Label>
-                <Textarea value={form.descricao} onChange={e => set('descricao', e.target.value)} className="mt-1 resize-none" rows={3} />
-              </div>
-              <div>
-                <Label>Valor Estimado (R$)</Label>
-                <Input type="number" value={form.valor_estimado} onChange={e => set('valor_estimado', e.target.value)} placeholder="0,00" className="mt-1" />
-              </div>
-              <div>
-                <Label>Probabilidade (%)</Label>
-                <Input type="number" min="0" max="100" value={form.probabilidade} onChange={e => set('probabilidade', e.target.value)} placeholder="0 - 100" className="mt-1" />
-              </div>
-            </div>
-          </div>
 
-          {/* Pipeline */}
-          <div>
-            <h3 className="text-sm font-semibold mb-4 pb-2 border-b border-border">Pipeline & Status</h3>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <Label>Etapa do Pipeline</Label>
-                <Select value={form.etapa_pipeline} onValueChange={v => set('etapa_pipeline', v)}>
-                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>{['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento'].map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Status</Label>
-                <Select value={form.status} onValueChange={v => set('status', v)}>
-                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>{['Aberta', 'Em Andamento', 'Ganha', 'Perdida', 'Cancelada'].map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
+      <form onSubmit={handleSubmit} className="max-w-3xl space-y-4">
+        {/* Informações Gerais */}
+        <div className="bg-card rounded-xl border border-border p-6 space-y-4">
+          <h3 className="text-sm font-semibold pb-2 border-b border-border">Informações Gerais</h3>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2">
+              <Label>Órgão Público</Label>
+              <Select value={form.orgao_id} onValueChange={v => set('orgao_id', v)}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione o órgão (opcional)" /></SelectTrigger>
+                <SelectContent>
+                  {orgaos.map(o => <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
-          </div>
-
-          {/* Licitação */}
-          <div>
-            <h3 className="text-sm font-semibold mb-4 pb-2 border-b border-border">Dados da Licitação</h3>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <Label>Modalidade</Label>
-                <Select value={form.tipo_licitacao} onValueChange={v => set('tipo_licitacao', v)}>
-                  <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>{LICITACOES.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Número do Edital</Label>
-                <Input value={form.numero_edital} onChange={e => set('numero_edital', e.target.value)} placeholder="Ex: 001/2025" className="mt-1" />
-              </div>
-              <div>
-                <Label>Data de Abertura</Label>
-                <Input type="date" value={form.data_abertura} onChange={e => set('data_abertura', e.target.value)} className="mt-1" />
-              </div>
-              <div>
-                <Label>Prazo para Proposta</Label>
-                <Input type="date" value={form.data_entrega_proposta} onChange={e => set('data_entrega_proposta', e.target.value)} className="mt-1" />
-              </div>
-              <div>
-                <Label>Data de Fechamento</Label>
-                <Input type="date" value={form.data_fechamento} onChange={e => set('data_fechamento', e.target.value)} className="mt-1" />
-              </div>
-              <div>
-                <Label>Concorrentes</Label>
-                <Input value={form.concorrentes} onChange={e => set('concorrentes', e.target.value)} placeholder="Empresas concorrentes" className="mt-1" />
-              </div>
-              <div className="sm:col-span-2">
-                <Label>Observações</Label>
-                <Textarea value={form.notas} onChange={e => set('notas', e.target.value)} className="mt-1 resize-none" rows={3} />
-              </div>
+            <div className="sm:col-span-2">
+              <Label>Nome da Oportunidade <span className="text-destructive">*</span></Label>
+              <Input
+                value={form.nome}
+                onChange={e => set('nome', e.target.value)}
+                placeholder="Ex: Fornecimento de Software de Gestão Tributária"
+                className={cn("mt-1", errors.nome && "border-destructive focus-visible:ring-destructive")}
+              />
+              <FieldError msg={errors.nome} />
+            </div>
+            <div className="sm:col-span-2">
+              <Label>Descrição</Label>
+              <Textarea
+                value={form.descricao}
+                onChange={e => set('descricao', e.target.value)}
+                placeholder="Descreva a oportunidade em detalhes..."
+                className="mt-1 resize-none"
+                rows={3}
+              />
+            </div>
+            <div>
+              <Label>Valor Estimado (R$)</Label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.valor_estimado}
+                onChange={e => set('valor_estimado', e.target.value)}
+                placeholder="0,00"
+                className={cn("mt-1", errors.valor_estimado && "border-destructive focus-visible:ring-destructive")}
+              />
+              <FieldError msg={errors.valor_estimado} />
+            </div>
+            <div>
+              <Label>Probabilidade de Fechamento (%)</Label>
+              <Input
+                type="number"
+                min="0"
+                max="100"
+                value={form.probabilidade}
+                onChange={e => set('probabilidade', e.target.value)}
+                placeholder="0 – 100"
+                className={cn("mt-1", errors.probabilidade && "border-destructive focus-visible:ring-destructive")}
+              />
+              <FieldError msg={errors.probabilidade} />
             </div>
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 mt-4">
-          <Link to="/oportunidades"><Button variant="outline" type="button">Cancelar</Button></Link>
+        {/* Pipeline & Status */}
+        <div className="bg-card rounded-xl border border-border p-6 space-y-4">
+          <h3 className="text-sm font-semibold pb-2 border-b border-border">Pipeline & Status</h3>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <Label>Etapa do Pipeline</Label>
+              <Select value={form.etapa_pipeline} onValueChange={v => set('etapa_pipeline', v)}>
+                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento'].map(v => (
+                    <SelectItem key={v} value={v}>{v}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Status</Label>
+              <Select value={form.status} onValueChange={v => set('status', v)}>
+                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {['Aberta', 'Em Andamento', 'Ganha', 'Perdida', 'Cancelada'].map(v => (
+                    <SelectItem key={v} value={v}>{v}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        {/* Dados da Licitação */}
+        <div className="bg-card rounded-xl border border-border p-6 space-y-4">
+          <h3 className="text-sm font-semibold pb-2 border-b border-border">Dados da Licitação</h3>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <Label>Modalidade de Licitação</Label>
+              <Select value={form.tipo_licitacao} onValueChange={v => set('tipo_licitacao', v)}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {LICITACOES.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Número do Edital</Label>
+              <Input
+                value={form.numero_edital}
+                onChange={e => set('numero_edital', e.target.value)}
+                placeholder="Ex: 001/2025"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>Data de Abertura</Label>
+              <Input
+                type="date"
+                value={form.data_abertura}
+                onChange={e => set('data_abertura', e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>Prazo para Entrega de Proposta</Label>
+              <Input
+                type="date"
+                value={form.data_entrega_proposta}
+                onChange={e => set('data_entrega_proposta', e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>Previsão de Fechamento</Label>
+              <Input
+                type="date"
+                value={form.data_fechamento}
+                onChange={e => set('data_fechamento', e.target.value)}
+                className={cn("mt-1", errors.data_fechamento && "border-destructive")}
+              />
+              <FieldError msg={errors.data_fechamento} />
+            </div>
+            <div>
+              <Label>Concorrentes Identificados</Label>
+              <Input
+                value={form.concorrentes}
+                onChange={e => set('concorrentes', e.target.value)}
+                placeholder="Ex: Empresa A, Empresa B"
+                className="mt-1"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Label>Observações</Label>
+              <Textarea
+                value={form.notas}
+                onChange={e => set('notas', e.target.value)}
+                placeholder="Informações adicionais sobre a oportunidade..."
+                className="mt-1 resize-none"
+                rows={3}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3">
+          <Link to="/oportunidades">
+            <Button variant="outline" type="button">Cancelar</Button>
+          </Link>
           <Button type="submit" disabled={isLoading} className="gap-2">
             <Save className="w-4 h-4" />
-            {isLoading ? 'Salvando...' : 'Salvar Oportunidade'}
+            {isLoading ? 'Salvando...' : isEdit ? 'Atualizar Oportunidade' : 'Cadastrar Oportunidade'}
           </Button>
         </div>
       </form>

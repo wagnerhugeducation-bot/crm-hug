@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Plus, Users, Pencil, Trash2, Eye } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import DataTable from '@/components/ui/DataTable';
 import SearchInput from '@/components/ui/SearchInput';
@@ -10,15 +10,18 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import PageHeader from '@/components/ui/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
 const PAGE_SIZE = 10;
 
 export default function ContatosList() {
+  const navigate = useNavigate();
   const [data, setData] = useState([]);
   const [orgaos, setOrgaos] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [filterInfluencia, setFilterInfluencia] = useState('all');
   const [page, setPage] = useState(1);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -38,11 +41,13 @@ export default function ContatosList() {
 
   useEffect(() => { load(); }, []);
 
-  const filtered = data.filter(d =>
-    [d.nome, d.cargo, d.email, d.telefone, orgaos[d.orgao_id]].some(f =>
+  const filtered = data.filter(d => {
+    const matchSearch = [d.nome, d.cargo, d.email, d.telefone, d.whatsapp, orgaos[d.orgao_id]].some(f =>
       f?.toLowerCase().includes(search.toLowerCase())
-    )
-  );
+    );
+    const matchInfluencia = filterInfluencia === 'all' || d.influencia_compra === filterInfluencia;
+    return matchSearch && matchInfluencia;
+  });
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -50,7 +55,7 @@ export default function ContatosList() {
   const handleDelete = async () => {
     setIsDeleting(true);
     await base44.entities.Contato.delete(deleteTarget.id);
-    toast.success('Contato excluído.');
+    toast.success('Contato excluído com sucesso.');
     setDeleteTarget(null);
     setIsDeleting(false);
     load();
@@ -58,18 +63,26 @@ export default function ContatosList() {
 
   const columns = [
     { key: 'nome', label: 'Nome', sortable: true },
-    { key: 'orgao_id', label: 'Órgão', render: (v) => orgaos[v] || '—' },
+    { key: 'orgao_id', label: 'Órgão', render: (v) => <span className="truncate max-w-[180px] block">{orgaos[v] || '—'}</span> },
     { key: 'cargo', label: 'Cargo', sortable: true },
     { key: 'influencia_compra', label: 'Influência', render: v => <StatusBadge value={v} /> },
-    { key: 'email', label: 'E-mail' },
+    { key: 'email', label: 'E-mail', render: v => v ? <a href={`mailto:${v}`} onClick={e => e.stopPropagation()} className="text-primary hover:underline">{v}</a> : '—' },
     { key: 'whatsapp', label: 'WhatsApp' },
     {
       key: 'actions', label: '', render: (_, row) => (
         <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-          <Link to={`/contatos/${row.id}/editar`}>
-            <Button variant="ghost" size="icon" className="h-7 w-7"><Pencil className="w-3.5 h-3.5" /></Button>
-          </Link>
-          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteTarget(row)}>
+          <Button variant="ghost" size="icon" className="h-7 w-7" title="Visualizar" onClick={() => navigate(`/contatos/${row.id}`)}>
+            <Eye className="w-3.5 h-3.5" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-7 w-7" title="Editar" onClick={() => navigate(`/contatos/${row.id}/editar`)}>
+            <Pencil className="w-3.5 h-3.5" />
+          </Button>
+          <Button
+            variant="ghost" size="icon"
+            className="h-7 w-7 text-destructive hover:text-destructive"
+            title="Excluir"
+            onClick={() => setDeleteTarget(row)}
+          >
             <Trash2 className="w-3.5 h-3.5" />
           </Button>
         </div>
@@ -82,20 +95,65 @@ export default function ContatosList() {
       <PageHeader
         title="Contatos"
         subtitle={`${data.length} contato(s) cadastrado(s)`}
-        actions={<Link to="/contatos/novo"><Button className="gap-2"><Plus className="w-4 h-4" /> Novo Contato</Button></Link>}
+        actions={
+          <Link to="/contatos/novo">
+            <Button className="gap-2"><Plus className="w-4 h-4" /> Novo Contato</Button>
+          </Link>
+        }
       />
-      <div className="mb-4">
-        <SearchInput value={search} onChange={v => { setSearch(v); setPage(1); }} placeholder="Buscar por nome, cargo, e-mail..." className="max-w-sm" />
+
+      <div className="flex flex-wrap gap-3 mb-4">
+        <SearchInput
+          value={search}
+          onChange={v => { setSearch(v); setPage(1); }}
+          placeholder="Buscar por nome, cargo, e-mail, órgão..."
+          className="flex-1 min-w-[200px] max-w-sm"
+        />
+        <Select value={filterInfluencia} onValueChange={v => { setFilterInfluencia(v); setPage(1); }}>
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder="Influência" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas Influências</SelectItem>
+            {['Decisor', 'Influenciador', 'Técnico', 'Usuário Final', 'Bloqueador'].map(v => (
+              <SelectItem key={v} value={v}>{v}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
+
       {!isLoading && filtered.length === 0 ? (
-        <EmptyState icon={Users} title="Nenhum contato encontrado" description={search ? 'Ajuste sua busca.' : 'Adicione o primeiro contato.'} action={!search && <Link to="/contatos/novo"><Button className="gap-2"><Plus className="w-4 h-4" /> Novo Contato</Button></Link>} />
+        <EmptyState
+          icon={Users}
+          title="Nenhum contato encontrado"
+          description={search ? 'Tente ajustar sua busca ou filtros.' : 'Adicione o primeiro contato.'}
+          action={!search && (
+            <Link to="/contatos/novo">
+              <Button className="gap-2"><Plus className="w-4 h-4" /> Novo Contato</Button>
+            </Link>
+          )}
+        />
       ) : (
         <>
-          <DataTable columns={columns} data={paged} isLoading={isLoading} />
+          <DataTable
+            columns={columns}
+            data={paged}
+            isLoading={isLoading}
+            onRowClick={row => navigate(`/contatos/${row.id}`)}
+          />
           <Pagination page={page} totalPages={totalPages} total={filtered.length} pageSize={PAGE_SIZE} onPageChange={setPage} />
         </>
       )}
-      <ConfirmModal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} isLoading={isDeleting} title="Excluir Contato" description={`Excluir "${deleteTarget?.nome}"?`} confirmLabel="Excluir" />
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        isLoading={isDeleting}
+        title="Excluir Contato"
+        description={`Tem certeza que deseja excluir "${deleteTarget?.nome}"?`}
+        confirmLabel="Excluir"
+      />
     </div>
   );
 }
