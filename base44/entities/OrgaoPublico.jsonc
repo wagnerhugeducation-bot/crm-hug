@@ -1,0 +1,97 @@
+{
+  "name": "OrgaoPublico",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome do \u00f3rg\u00e3o p\u00fablico"
+    },
+    "cnpj": {
+      "type": "string",
+      "description": "CNPJ do \u00f3rg\u00e3o"
+    },
+    "esfera": {
+      "type": "string",
+      "enum": [
+        "Federal",
+        "Estadual",
+        "Municipal"
+      ],
+      "description": "Esfera governamental"
+    },
+    "poder": {
+      "type": "string",
+      "enum": [
+        "Executivo",
+        "Legislativo",
+        "Judici\u00e1rio",
+        "Minist\u00e9rio P\u00fablico"
+      ],
+      "description": "Poder do \u00f3rg\u00e3o"
+    },
+    "secretaria": {
+      "type": "string",
+      "description": "Secretaria ou departamento"
+    },
+    "cidade": {
+      "type": "string",
+      "description": "Cidade"
+    },
+    "estado": {
+      "type": "string",
+      "description": "Estado (UF)"
+    },
+    "cep": {
+      "type": "string",
+      "description": "CEP"
+    },
+    "endereco": {
+      "type": "string",
+      "description": "Endere\u00e7o completo"
+    },
+    "telefone": {
+      "type": "string",
+      "description": "Telefone principal"
+    },
+    "email_institucional": {
+      "type": "string",
+      "description": "E-mail institucional"
+    },
+    "site": {
+      "type": "string",
+      "description": "Site oficial"
+    },
+    "portal_compras": {
+      "type": "string",
+      "description": "URL do portal de compras"
+    },
+    "relacionamento_status": {
+      "type": "string",
+      "enum": [
+        "Prospecto",
+        "Em Contato",
+        "Ativo",
+        "Inativo",
+        "VIP"
+      ],
+      "default": "Prospecto",
+      "description": "Status do relacionamento"
+    },
+    "orcamento_anual": {
+      "type": "number",
+      "description": "Or\u00e7amento anual estimado"
+    },
+    "responsavel_id": {
+      "type": "string",
+      "description": "ID do respons\u00e1vel interno"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es gerais"
+    }
+  },
+  "required": [
+    "nome",
+    "esfera"
+  ]
+}

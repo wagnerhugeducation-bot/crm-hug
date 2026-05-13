@@ -1,0 +1,59 @@
+{
+  "name": "ScoreBANT",
+  "type": "object",
+  "properties": {
+    "oportunidade_id": {
+      "type": "string",
+      "description": "ID da oportunidade"
+    },
+    "budget_score": {
+      "type": "number",
+      "description": "Score Or\u00e7amento (0-10)"
+    },
+    "budget_notas": {
+      "type": "string",
+      "description": "Notas sobre or\u00e7amento"
+    },
+    "authority_score": {
+      "type": "number",
+      "description": "Score Autoridade (0-10)"
+    },
+    "authority_notas": {
+      "type": "string",
+      "description": "Notas sobre autoridade/decisor"
+    },
+    "need_score": {
+      "type": "number",
+      "description": "Score Necessidade (0-10)"
+    },
+    "need_notas": {
+      "type": "string",
+      "description": "Notas sobre necessidade"
+    },
+    "timing_score": {
+      "type": "number",
+      "description": "Score Timing (0-10)"
+    },
+    "timing_notas": {
+      "type": "string",
+      "description": "Notas sobre timing"
+    },
+    "total_score": {
+      "type": "number",
+      "description": "Score total calculado"
+    },
+    "classificacao": {
+      "type": "string",
+      "enum": [
+        "Frio",
+        "Morno",
+        "Quente",
+        "Muito Quente"
+      ],
+      "description": "Classifica\u00e7\u00e3o baseada no score"
+    }
+  },
+  "required": [
+    "oportunidade_id"
+  ]
+}

@@ -1,0 +1,178 @@
+import { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
+import { ArrowLeft, Pencil, Target, CheckSquare, FileText, Star } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import PageHeader from '@/components/ui/PageHeader';
+import StatusBadge from '@/components/ui/StatusBadge';
+import DataTable from '@/components/ui/DataTable';
+
+function InfoRow({ label, value }) {
+  if (!value) return null;
+  return (
+    <div>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-sm font-medium text-foreground mt-0.5">{value}</p>
+    </div>
+  );
+}
+
+function BANTScore({ bant }) {
+  if (!bant) return <div className="text-sm text-muted-foreground py-4 text-center">Score BANT não preenchido.</div>;
+  const scores = [
+    { label: 'Budget (Orçamento)', score: bant.budget_score, notas: bant.budget_notas },
+    { label: 'Authority (Autoridade)', score: bant.authority_score, notas: bant.authority_notas },
+    { label: 'Need (Necessidade)', score: bant.need_score, notas: bant.need_notas },
+    { label: 'Timing (Timing)', score: bant.timing_score, notas: bant.timing_notas },
+  ];
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-semibold">Score Total: <span className="text-primary">{bant.total_score || '—'}</span></p>
+        <StatusBadge value={bant.classificacao} />
+      </div>
+      {scores.map(s => (
+        <div key={s.label}>
+          <div className="flex justify-between text-xs mb-1">
+            <span className="text-muted-foreground">{s.label}</span>
+            <span className="font-medium">{s.score ?? '—'}/10</span>
+          </div>
+          <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+            <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${(s.score || 0) * 10}%` }} />
+          </div>
+          {s.notas && <p className="text-xs text-muted-foreground mt-1">{s.notas}</p>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function OportunidadeDetail() {
+  const { id } = useParams();
+  const [op, setOp] = useState(null);
+  const [orgao, setOrgao] = useState(null);
+  const [tarefas, setTarefas] = useState([]);
+  const [documentos, setDocumentos] = useState([]);
+  const [bant, setBant] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const [ops, tafs, docs, bants] = await Promise.all([
+        base44.entities.Oportunidade.filter({ id }),
+        base44.entities.Tarefa.filter({ oportunidade_id: id }),
+        base44.entities.Documento.filter({ oportunidade_id: id }),
+        base44.entities.ScoreBANT.filter({ oportunidade_id: id }),
+      ]);
+      const foundOp = ops[0];
+      setOp(foundOp || null);
+      setTarefas(tafs);
+      setDocumentos(docs);
+      setBant(bants[0] || null);
+      if (foundOp?.orgao_id) {
+        const orgs = await base44.entities.OrgaoPublico.filter({ id: foundOp.orgao_id });
+        setOrgao(orgs[0] || null);
+      }
+      setIsLoading(false);
+    };
+    load();
+  }, [id]);
+
+  if (isLoading) return <div className="flex justify-center py-12"><div className="w-7 h-7 border-4 border-primary/30 border-t-primary rounded-full animate-spin" /></div>;
+  if (!op) return <div className="text-center py-12 text-muted-foreground">Oportunidade não encontrada.</div>;
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title={op.nome}
+        subtitle={orgao?.nome}
+        actions={
+          <div className="flex gap-2">
+            <Link to="/oportunidades"><Button variant="outline" className="gap-2"><ArrowLeft className="w-4 h-4" /> Voltar</Button></Link>
+            <Link to={`/oportunidades/${id}/editar`}><Button className="gap-2"><Pencil className="w-4 h-4" /> Editar</Button></Link>
+          </div>
+        }
+      />
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Info */}
+        <div className="space-y-4">
+          <div className="bg-card rounded-xl border border-border p-5 space-y-3">
+            <div className="flex gap-2 flex-wrap">
+              <StatusBadge value={op.status} />
+              <StatusBadge value={op.etapa_pipeline} />
+            </div>
+            <InfoRow label="Modalidade" value={op.tipo_licitacao} />
+            <InfoRow label="Nº Edital" value={op.numero_edital} />
+            <InfoRow label="Valor Estimado" value={op.valor_estimado ? `R$ ${Number(op.valor_estimado).toLocaleString('pt-BR')}` : null} />
+            <InfoRow label="Probabilidade" value={op.probabilidade ? `${op.probabilidade}%` : null} />
+            <InfoRow label="Data Abertura" value={op.data_abertura} />
+            <InfoRow label="Prazo Proposta" value={op.data_entrega_proposta} />
+            <InfoRow label="Concorrentes" value={op.concorrentes} />
+            {op.notas && <InfoRow label="Observações" value={op.notas} />}
+          </div>
+
+          {/* BANT */}
+          <div className="bg-card rounded-xl border border-border p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Star className="w-4 h-4 text-primary" />
+                <h3 className="text-sm font-semibold">Score BANT</h3>
+              </div>
+              <Link to={`/oportunidades/${id}/bant`}><Button size="sm" variant="outline" className="text-xs">Editar</Button></Link>
+            </div>
+            <BANTScore bant={bant} />
+          </div>
+        </div>
+
+        {/* Tarefas + Documentos */}
+        <div className="lg:col-span-2 space-y-5">
+          <div className="bg-card rounded-xl border border-border">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+              <div className="flex items-center gap-2">
+                <CheckSquare className="w-4 h-4 text-primary" />
+                <h3 className="text-sm font-semibold">Tarefas ({tarefas.length})</h3>
+              </div>
+              <Link to={`/tarefas/nova?oportunidade_id=${id}`}>
+                <Button size="sm" variant="outline" className="text-xs">+ Tarefa</Button>
+              </Link>
+            </div>
+            <DataTable
+              columns={[
+                { key: 'titulo', label: 'Título' },
+                { key: 'tipo', label: 'Tipo' },
+                { key: 'data_vencimento', label: 'Vencimento', render: v => v ? new Date(v).toLocaleDateString('pt-BR') : '—' },
+                { key: 'status', label: 'Status', render: v => <StatusBadge value={v} /> },
+                { key: 'prioridade', label: 'Prioridade', render: v => <StatusBadge value={v} /> },
+              ]}
+              data={tarefas}
+              emptyMessage="Nenhuma tarefa vinculada."
+            />
+          </div>
+
+          <div className="bg-card rounded-xl border border-border">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-primary" />
+                <h3 className="text-sm font-semibold">Documentos ({documentos.length})</h3>
+              </div>
+              <Link to={`/documentos/novo?oportunidade_id=${id}`}>
+                <Button size="sm" variant="outline" className="text-xs">+ Documento</Button>
+              </Link>
+            </div>
+            <DataTable
+              columns={[
+                { key: 'nome', label: 'Nome' },
+                { key: 'tipo', label: 'Tipo' },
+                { key: 'validade', label: 'Validade', render: v => v ? new Date(v).toLocaleDateString('pt-BR') : '—' },
+                { key: 'arquivo_url', label: 'Arquivo', render: v => v ? <a href={v} target="_blank" rel="noreferrer" className="text-primary hover:underline text-xs">Abrir</a> : '—' },
+              ]}
+              data={documentos}
+              emptyMessage="Nenhum documento vinculado."
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

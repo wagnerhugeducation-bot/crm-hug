@@ -1,0 +1,58 @@
+{
+  "name": "Documento",
+  "type": "object",
+  "properties": {
+    "oportunidade_id": {
+      "type": "string",
+      "description": "ID da oportunidade"
+    },
+    "orgao_id": {
+      "type": "string",
+      "description": "ID do \u00f3rg\u00e3o"
+    },
+    "nome": {
+      "type": "string",
+      "description": "Nome do documento"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "Edital",
+        "Proposta",
+        "Contrato",
+        "Ata",
+        "Certid\u00e3o",
+        "Habilita\u00e7\u00e3o",
+        "Termo de Refer\u00eancia",
+        "Nota Fiscal",
+        "Outro"
+      ],
+      "description": "Tipo do documento"
+    },
+    "arquivo_url": {
+      "type": "string",
+      "description": "URL do arquivo"
+    },
+    "tamanho_kb": {
+      "type": "number",
+      "description": "Tamanho em KB"
+    },
+    "validade": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de validade do documento"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o ou observa\u00e7\u00f5es"
+    },
+    "versao": {
+      "type": "string",
+      "description": "Vers\u00e3o do documento"
+    }
+  },
+  "required": [
+    "nome",
+    "tipo"
+  ]
+}
