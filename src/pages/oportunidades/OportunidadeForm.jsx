@@ -100,7 +100,6 @@ export default function OportunidadeForm() {
         await base44.entities.Oportunidade.create({
           ...payload,
           responsavel_id: user?.email,
-          created_by_user_id: user?.id,
         });
         toast.success('Oportunidade cadastrada com sucesso.');
       }

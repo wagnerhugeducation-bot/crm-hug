@@ -60,7 +60,6 @@ export default function TarefaForm() {
       await base44.entities.Tarefa.create({
         ...form,
         responsavel_id: user?.email,
-        created_by_user_id: user?.id,
       });
       toast.success('Tarefa criada.');
     }
