@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -33,6 +34,7 @@ export default function OportunidadeForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, isAdmin } = useAuth();
   const isEdit = !!id && id !== 'nova';
   const [form, setForm] = useState(defaultForm);
   const [orgaos, setOrgaos] = useState([]);

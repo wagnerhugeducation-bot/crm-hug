@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Plus, Target, Pencil, Trash2, Eye } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ const PAGE_SIZE = 10;
 
 export default function OportunidadesList() {
   const navigate = useNavigate();
+  const { user, isAdmin } = useAuth();
   const [data, setData] = useState([]);
   const [orgaos, setOrgaos] = useState({});
   const [isLoading, setIsLoading] = useState(true);
@@ -28,9 +30,12 @@ export default function OportunidadesList() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const load = async () => {
+    if (!user) return;
     setIsLoading(true);
     const [ops, orgList] = await Promise.all([
-      base44.entities.Oportunidade.list('-created_date'),
+      isAdmin()
+        ? base44.entities.Oportunidade.list('-created_date')
+        : base44.entities.Oportunidade.filter({ created_by: user.email }, '-created_date'),
       base44.entities.OrgaoPublico.list(),
     ]);
     const map = {};
@@ -40,7 +45,7 @@ export default function OportunidadesList() {
     setIsLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [user]);
 
   const filtered = data.filter(d => {
     const matchSearch = [d.nome, orgaos[d.orgao_id], d.numero_edital, d.tipo_licitacao].some(

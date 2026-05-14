@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Plus, CheckSquare, Pencil, Trash2, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ import { toast } from 'sonner';
 const PAGE_SIZE = 10;
 
 export default function TarefasList() {
+  const { user, isAdmin } = useAuth();
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -26,13 +28,16 @@ export default function TarefasList() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const load = async () => {
+    if (!user) return;
     setIsLoading(true);
-    const res = await base44.entities.Tarefa.list('-created_date');
+    const res = isAdmin()
+      ? await base44.entities.Tarefa.list('-created_date')
+      : await base44.entities.Tarefa.filter({ created_by: user.email }, '-created_date');
     setData(res);
     setIsLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [user]);
 
   const filtered = data.filter(d => {
     const matchSearch = [d.titulo, d.tipo].some(f => f?.toLowerCase().includes(search.toLowerCase()));

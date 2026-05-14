@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,6 +21,7 @@ export default function TarefaForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, isAdmin } = useAuth();
   const isEdit = !!id && id !== 'nova';
   const [form, setForm] = useState(defaultForm);
   const [oportunidades, setOportunidades] = useState([]);
@@ -29,7 +31,12 @@ export default function TarefaForm() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const opId = params.get('oportunidade_id');
-    base44.entities.Oportunidade.list().then(res => setOportunidades(res));
+    const loadOps = user
+      ? (isAdmin()
+          ? base44.entities.Oportunidade.list()
+          : base44.entities.Oportunidade.filter({ created_by: user.email }))
+      : Promise.resolve([]);
+    loadOps.then(res => setOportunidades(res));
     if (isEdit) {
       base44.entities.Tarefa.filter({ id }).then(res => {
         if (res[0]) setForm({ ...defaultForm, ...res[0] });
