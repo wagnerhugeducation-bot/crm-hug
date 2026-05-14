@@ -82,20 +82,25 @@ export const AuthProvider = ({ children }) => {
 
       // Admins do sistema nunca precisam de perfil para acessar
       if (isSystemAdmin) {
-        // Tenta carregar perfil mas não bloqueia se não existir
-        const profile = await loadUserProfile(currentUser);
-        if (!profile) {
-          const newProfile = await base44.entities.User.create({
-            email: currentUser.email,
-            full_name: currentUser.full_name || currentUser.email,
-            status_acesso: 'Ativo',
-            role: 'Administrador',
-            provider: currentUser?.provider || 'email',
-            foto_google: currentUser?.picture || '',
-          });
-          setUserProfile(newProfile);
-        } else {
-          setUserProfile(profile);
+        // Tenta carregar perfil mas nunca bloqueia se falhar
+        try {
+          const profile = await loadUserProfile(currentUser);
+          if (!profile) {
+            const newProfile = await base44.entities.User.create({
+              email: currentUser.email,
+              full_name: currentUser.full_name || currentUser.email,
+              status_acesso: 'Ativo',
+              role: 'Administrador',
+              provider: currentUser?.provider || 'email',
+              foto_google: currentUser?.picture || '',
+            });
+            setUserProfile(newProfile);
+          } else {
+            setUserProfile(profile);
+          }
+        } catch {
+          // Admin sempre entra, mesmo sem perfil na entidade customizada
+          setUserProfile({ status_acesso: 'Ativo', role: 'Administrador' });
         }
         setIsAuthenticated(true);
         setIsLoadingAuth(false);
