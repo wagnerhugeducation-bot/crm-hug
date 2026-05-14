@@ -43,7 +43,7 @@ export default function Sidebar({ open, onClose }) {
               className="w-12 h-12 object-contain flex-shrink-0" />
             
             <div className="min-w-0">
-              <span className="text-white font-bold tracking-wide leading-none text-3xl">HUG</span>
+              <span className="text-white tracking-wide leading-none font-black text-4xl">HUG</span>
               <span className="block text-sidebar-muted leading-tight mt-0.5 text-xs">life skills education</span>
             </div>
           </div>
