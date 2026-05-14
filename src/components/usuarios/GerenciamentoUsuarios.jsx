@@ -124,7 +124,26 @@ export default function GerenciamentoUsuarios() {
     },
     {
       key: 'status_acesso', label: 'Status',
-      render: v => <StatusBadge value={v} />
+      render: (v, row) => (
+        <Select
+          value={v || 'Bloqueado'}
+          onValueChange={async (newStatus) => {
+            await base44.entities.User.update(row.id, { status_acesso: newStatus });
+            toast.success('Status atualizado.');
+            load();
+          }}
+          disabled={row.email === currentUser?.email}
+        >
+          <SelectTrigger className="h-7 text-xs w-32 border-0 bg-transparent hover:bg-muted/50">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Ativo">Ativo</SelectItem>
+            <SelectItem value="Bloqueado">Bloqueado</SelectItem>
+            <SelectItem value="Pendente">Pendente</SelectItem>
+          </SelectContent>
+        </Select>
+      )
     },
     {
       key: 'provider', label: 'Provedor',
@@ -135,22 +154,16 @@ export default function GerenciamentoUsuarios() {
         const isSelf = row.email === currentUser?.email;
         return (
           <div className="flex items-center gap-1 justify-end" onClick={e => e.stopPropagation()}>
-            {row.status_acesso === 'Pendente' && (
-              <Button variant="ghost" size="sm" className="h-7 text-xs text-green-600 hover:text-green-700 gap-1"
-                onClick={() => handleLiberar(row)}>
-                <CheckCircle className="w-3.5 h-3.5" /> Liberar
-              </Button>
-            )}
             {row.status_acesso === 'Ativo' && !isSelf && (
               <Button variant="ghost" size="sm" className="h-7 text-xs text-amber-600 hover:text-amber-700 gap-1"
                 onClick={() => handleBloquear(row)}>
                 <ShieldOff className="w-3.5 h-3.5" /> Bloquear
               </Button>
             )}
-            {row.status_acesso === 'Bloqueado' && (
+            {(!row.status_acesso || row.status_acesso === 'Bloqueado' || row.status_acesso === 'Pendente') && !isSelf && (
               <Button variant="ghost" size="sm" className="h-7 text-xs text-green-600 hover:text-green-700 gap-1"
                 onClick={() => handleLiberar(row)}>
-                <ShieldCheck className="w-3.5 h-3.5" /> Reativar
+                <ShieldCheck className="w-3.5 h-3.5" /> Liberar
               </Button>
             )}
             {!isSelf && (
