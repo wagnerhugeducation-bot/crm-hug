@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Building2, Users, Target, CheckSquare,
-  FileText, Settings, ChevronRight, X, TrendingUp
+  FileText, Settings, ChevronRight, X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
@@ -35,17 +35,19 @@ export default function Sidebar({ open, onClose }) {
         open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}>
         {/* Logo */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-sidebar-border">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary-mid flex items-center justify-center">
-              <TrendingUp className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <span className="text-white font-bold text-sm tracking-wide">GovCRM</span>
-              <span className="block text-sidebar-muted text-xs">Brasil</span>
+        <div className="flex items-center justify-between px-4 py-4 border-b border-sidebar-border">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <img
+              src="https://media.base44.com/images/public/6a04a29ba55526e1615839e1/39ad057f8_logohug.png"
+              alt="HUG logo"
+              className="w-12 h-12 object-contain flex-shrink-0"
+            />
+            <div className="min-w-0">
+              <span className="text-white font-bold text-base tracking-wide leading-none">HUG</span>
+              <span className="block text-sidebar-muted text-[10px] leading-tight mt-0.5">life skills education</span>
             </div>
           </div>
-          <button onClick={onClose} className="lg:hidden text-sidebar-muted hover:text-white">
+          <button onClick={onClose} className="lg:hidden text-sidebar-muted hover:text-white ml-2">
             <X className="w-5 h-5" />
           </button>
         </div>
