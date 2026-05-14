@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Building2, Users, Target, CheckSquare,
-  FileText, Settings, ChevronRight, X } from
+  FileText, Settings, ChevronRight, X, BarChart2 } from
 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
@@ -12,7 +12,8 @@ const navItems = [
 { icon: Users, label: 'Contatos', path: '/contatos' },
 { icon: Target, label: 'Oportunidades', path: '/oportunidades' },
 { icon: CheckSquare, label: 'Tarefas', path: '/tarefas' },
-{ icon: FileText, label: 'Documentos', path: '/documentos' }];
+{ icon: FileText, label: 'Documentos', path: '/documentos' },
+{ icon: BarChart2, label: 'Relatórios', path: '/relatorios' }];
 
 
 const bottomItems = [

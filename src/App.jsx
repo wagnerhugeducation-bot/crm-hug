@@ -34,6 +34,7 @@ import TarefaForm from '@/pages/tarefas/TarefaForm';
 import DocumentosList from '@/pages/documentos/DocumentosList';
 import DocumentoForm from '@/pages/documentos/DocumentoForm';
 import Configuracoes from '@/pages/Configuracoes';
+import Relatorios from '@/pages/Relatorios';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, userProfile, navigateToLogin, user } = useAuth();
@@ -114,6 +115,7 @@ const AuthenticatedApp = () => {
         <Route path="/documentos/:id/editar" element={<DocumentoForm />} />
 
         <Route path="/configuracoes" element={<Configuracoes />} />
+        <Route path="/relatorios" element={<Relatorios />} />
       </Route>
 
       <Route path="*" element={<PageNotFound />} />
