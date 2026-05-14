@@ -15,41 +15,47 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 210 35% 28%;
+    /* Primary = laranja vibrante do logo */
+    --primary: 22 100% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --primary-light: 210 35% 95%;
-    --primary-mid: 24 90% 50%;
+    --primary-light: 22 100% 96%;
+    --primary-mid: 22 100% 50%;
 
-    --secondary: 210 16% 93%;
-    --secondary-foreground: 222 47% 11%;
+    /* Secondary = amarelo-dourado */
+    --secondary: 40 95% 93%;
+    --secondary-foreground: 30 80% 25%;
 
     --muted: 210 16% 95%;
     --muted-foreground: 215 16% 47%;
 
-    --accent: 221 83% 96%;
-    --accent-foreground: 210 35% 28%;
+    /* Accent = ciano/teal do logo */
+    --accent: 185 70% 92%;
+    --accent-foreground: 185 70% 25%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 71% 45%;
+    /* Success = verde do logo */
+    --success: 80 55% 45%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
+    /* Warning = amarelo do logo */
+    --warning: 42 100% 50%;
     --warning-foreground: 0 0% 100%;
 
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 24 90% 50%;
+    --ring: 22 100% 50%;
 
     --radius: 0.625rem;
 
-    --sidebar-bg: 210 35% 22%;
-    --sidebar-fg: 210 40% 92%;
-    --sidebar-accent: 24 90% 50%;
-    --sidebar-border: 210 30% 30%;
-    --sidebar-muted: 210 20% 60%;
+    /* Sidebar = azul-petróleo escuro do logo */
+    --sidebar-bg: 195 60% 18%;
+    --sidebar-fg: 195 30% 92%;
+    --sidebar-accent: 22 100% 50%;
+    --sidebar-border: 195 40% 28%;
+    --sidebar-muted: 195 25% 60%;
 
     --font-inter: 'Inter', sans-serif;
   }

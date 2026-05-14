@@ -38,8 +38,8 @@ export default function Sidebar({ open, onClose }) {
         <div className="flex items-center justify-between px-4 py-4 border-b border-sidebar-border">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <img
-              src="https://media.base44.com/images/public/6a04a29ba55526e1615839e1/39ad057f8_logohug.png"
-              alt="HUG logo"
+              src="https://media.base44.com/images/public/6a04a29ba55526e1615839e1/049c47ac0_elementohug.png"
+              alt="HUG elemento"
               className="w-12 h-12 object-contain flex-shrink-0"
             />
             <div className="min-w-0">
