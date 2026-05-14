@@ -219,7 +219,7 @@ export default function GerenciamentoUsuarios() {
             </Button>
           </div>
           <p className="w-full text-xs text-muted-foreground">
-            O usuário receberá um e-mail de convite e ficará com status <strong>Pendente</strong> até que você libere o acesso.
+            O usuário receberá um e-mail de convite. Novos usuários ficam com status <strong>Bloqueado</strong> até que você libere o acesso.
           </p>
         </form>
       )}

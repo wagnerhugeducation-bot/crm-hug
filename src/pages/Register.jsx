@@ -43,9 +43,9 @@ export default function Register() {
       const result = await base44.auth.verifyOtp({ email, otpCode });
       if (result?.access_token) {
         base44.auth.setToken(result.access_token);
-        // Cria o perfil do usuário com status Pendente
+        // Cria o perfil com status Bloqueado — aguarda liberação do admin
         await base44.entities.User.create({
-          status_acesso: 'Pendente',
+          status_acesso: 'Bloqueado',
           role: 'Comercial',
           provider: 'email',
         });
@@ -83,7 +83,7 @@ export default function Register() {
           </div>
           <h2 className="text-xl font-bold text-slate-900 mb-2">Cadastro recebido!</h2>
           <p className="text-slate-600 text-sm mb-6">
-            Seu cadastro foi recebido e está aguardando liberação do administrador. Você receberá acesso assim que for aprovado.
+            Seu cadastro foi recebido. Sua conta está <strong>bloqueada</strong> até que o administrador libere o seu acesso. Você será notificado assim que for aprovado.
           </p>
           <Link to="/login">
             <Button variant="outline" className="w-full">Voltar ao Login</Button>

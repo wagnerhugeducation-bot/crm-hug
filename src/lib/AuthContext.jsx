@@ -80,12 +80,14 @@ export const AuthProvider = ({ children }) => {
       const profile = await loadUserProfile(currentUser);
       setUserProfile(profile);
 
-      // Se não tem perfil ainda, cria com status Pendente
+      // Se não tem perfil ainda, cria com status Bloqueado (aguarda liberação do admin)
       if (!profile) {
+        // Admins da plataforma (owner) entram direto como Ativos
+        const isSystemAdmin = currentUser?.role === 'admin';
         const newProfile = await base44.entities.User.create({
-          status_acesso: 'Pendente',
-          role: 'Comercial',
-          provider: 'google',
+          status_acesso: isSystemAdmin ? 'Ativo' : 'Bloqueado',
+          role: isSystemAdmin ? 'Administrador' : 'Comercial',
+          provider: currentUser?.provider || 'google',
         });
         setUserProfile(newProfile);
       }

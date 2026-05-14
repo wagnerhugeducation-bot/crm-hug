@@ -34,7 +34,7 @@ export default function AcessoBloqueado() {
           <p className="text-slate-600 text-sm mb-6 leading-relaxed">
             {isPendente
               ? 'Seu cadastro foi recebido e está aguardando liberação do administrador.'
-              : 'Seu acesso está bloqueado. Entre em contato com o administrador.'
+              : 'Seu conta está bloqueada aguardando liberação. Entre em contato com o administrador para liberar o acesso.'
             }
           </p>
 
