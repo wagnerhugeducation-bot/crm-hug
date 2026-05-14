@@ -110,12 +110,12 @@
       "$or": [
         {
           "user_condition": {
-            "role": "Administrador"
+            "role": "admin"
           }
         },
         {
           "user_condition": {
-            "role": "Gestor"
+            "role": "user"
           }
         },
         {
