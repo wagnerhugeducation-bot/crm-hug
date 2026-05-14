@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Pencil, Target, CheckSquare, FileText, Star } from 'lucide-react';
+import BANTGauge from '@/components/bant/BANTGauge';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/ui/PageHeader';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -27,9 +28,12 @@ function BANTScore({ bant }) {
   ];
   return (
     <div className="space-y-3">
+      <div className="flex flex-col items-center gap-1 pb-2">
+        <BANTGauge score={bant.total_score ?? null} size="md" />
+        <StatusBadge value={bant.classificacao} />
+      </div>
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold">Score Total: <span className="text-primary">{bant.total_score || '—'}</span></p>
-        <StatusBadge value={bant.classificacao} />
       </div>
       {scores.map(s => (
         <div key={s.label}>

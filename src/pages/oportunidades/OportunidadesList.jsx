@@ -5,6 +5,7 @@ import { useUsuariosMap } from '@/hooks/useUsuariosMap';
 import { Plus, Target, Pencil, Trash2, Eye } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import BANTGauge from '@/components/bant/BANTGauge';
 import DataTable from '@/components/ui/DataTable';
 import SearchInput from '@/components/ui/SearchInput';
 import Pagination from '@/components/ui/Pagination';
@@ -23,6 +24,7 @@ export default function OportunidadesList() {
   const { usuarios, getLabel } = useUsuariosMap();
   const [data, setData] = useState([]);
   const [orgaos, setOrgaos] = useState({});
+  const [bantMap, setBantMap] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -35,15 +37,19 @@ export default function OportunidadesList() {
   const load = async () => {
     if (!user) return;
     setIsLoading(true);
-    const [ops, orgList] = await Promise.all([
+    const [ops, orgList, bantList] = await Promise.all([
       isAdmin()
         ? base44.entities.Oportunidade.list('-created_date')
         : base44.entities.Oportunidade.filter({ created_by: user.email }, '-created_date'),
       base44.entities.OrgaoPublico.list(),
+      base44.entities.ScoreBANT.list(),
     ]);
     const map = {};
     orgList.forEach(o => { map[o.id] = o.nome; });
     setOrgaos(map);
+    const bm = {};
+    bantList.forEach(b => { bm[b.oportunidade_id] = b; });
+    setBantMap(bm);
     setData(ops);
     setIsLoading(false);
   };
@@ -88,6 +94,13 @@ export default function OportunidadesList() {
     {
       key: 'probabilidade', label: '%',
       render: v => v ? `${v}%` : '—'
+    },
+    {
+      key: 'id', label: 'BANT',
+      render: (v) => {
+        const b = bantMap[v];
+        return <BANTGauge score={b?.total_score ?? null} size="sm" />;
+      }
     },
     {
       key: 'created_by', label: 'Criador',
