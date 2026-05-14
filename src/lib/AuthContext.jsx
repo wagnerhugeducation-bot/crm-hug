@@ -21,9 +21,8 @@ export const AuthProvider = ({ children }) => {
 
   const loadUserProfile = async (authUser) => {
     try {
-      const users = await base44.entities.User.list();
-      const profile = users.find(u => u.email === authUser.email);
-      return profile || null;
+      const users = await base44.entities.User.filter({ email: authUser.email });
+      return users?.[0] || null;
     } catch {
       return null;
     }
