@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
+import { useUsuariosMap } from '@/hooks/useUsuariosMap';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,6 +23,7 @@ export default function TarefaForm() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAdmin } = useAuth();
+  const { usuarios, getLabel } = useUsuariosMap();
   const isEdit = !!id && id !== 'nova';
   const [form, setForm] = useState(defaultForm);
   const [oportunidades, setOportunidades] = useState([]);
@@ -53,11 +55,16 @@ export default function TarefaForm() {
     e.preventDefault();
     if (!form.titulo.trim()) { toast.error('Título é obrigatório.'); return; }
     setIsLoading(true);
+    const payload = isEdit ? form : {
+      ...form,
+      created_by_user_id: user?.id,
+      responsavel_id: isAdmin() ? form.responsavel_id : user?.email
+    };
     if (isEdit) {
-      await base44.entities.Tarefa.update(id, form);
+      await base44.entities.Tarefa.update(id, payload);
       toast.success('Tarefa atualizada.');
     } else {
-      await base44.entities.Tarefa.create(form);
+      await base44.entities.Tarefa.create(payload);
       toast.success('Tarefa criada.');
     }
     navigate('/tarefas');
@@ -115,7 +122,18 @@ export default function TarefaForm() {
             <Label>Descrição</Label>
             <Textarea value={form.descricao} onChange={e => set('descricao', e.target.value)} className="mt-1 resize-none" rows={3} />
           </div>
-        </div>
+          {isAdmin() && usuarios.length > 0 && (
+            <div>
+              <Label>Responsável</Label>
+              <Select value={form.responsavel_id || ''} onValueChange={v => set('responsavel_id', v)}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione o responsável" /></SelectTrigger>
+                <SelectContent>
+                  {usuarios.map(u => <SelectItem key={u.email} value={u.email}>{getLabel(u.email)}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          </div>
         <div className="flex justify-end gap-3 mt-4">
           <Link to="/tarefas"><Button variant="outline" type="button">Cancelar</Button></Link>
           <Button type="submit" disabled={isLoading} className="gap-2">

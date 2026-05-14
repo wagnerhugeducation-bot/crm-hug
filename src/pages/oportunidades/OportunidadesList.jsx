@@ -30,6 +30,7 @@ export default function OportunidadesList() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterEtapa, setFilterEtapa] = useState('all');
   const [filterCriador, setFilterCriador] = useState('all');
+  const [filterResponsavel, setFilterResponsavel] = useState('all');
   const [page, setPage] = useState(1);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -63,7 +64,8 @@ export default function OportunidadesList() {
     const matchStatus = filterStatus === 'all' || d.status === filterStatus;
     const matchEtapa = filterEtapa === 'all' || d.etapa_pipeline === filterEtapa;
     const matchCriador = filterCriador === 'all' || d.created_by === filterCriador;
-    return matchSearch && matchStatus && matchEtapa && matchCriador;
+    const matchResponsavel = filterResponsavel === 'all' || d.responsavel_id === filterResponsavel;
+    return matchSearch && matchStatus && matchEtapa && matchCriador && matchResponsavel;
   });
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -166,15 +168,26 @@ export default function OportunidadesList() {
           </SelectContent>
         </Select>
         {isAdmin() && usuarios.length > 0 && (
-          <Select value={filterCriador} onValueChange={v => { setFilterCriador(v); setPage(1); }}>
-            <SelectTrigger className="w-44"><SelectValue placeholder="Criador" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os Criadores</SelectItem>
-              {usuarios.map(u => (
-                <SelectItem key={u.email} value={u.email}>{getLabel(u.email)}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <>
+            <Select value={filterCriador} onValueChange={v => { setFilterCriador(v); setPage(1); }}>
+              <SelectTrigger className="w-44"><SelectValue placeholder="Criador" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Criadores</SelectItem>
+                {usuarios.map(u => (
+                  <SelectItem key={u.email} value={u.email}>{getLabel(u.email)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filterResponsavel} onValueChange={v => { setFilterResponsavel(v); setPage(1); }}>
+              <SelectTrigger className="w-44"><SelectValue placeholder="Responsável" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos Responsáveis</SelectItem>
+                {usuarios.map(u => (
+                  <SelectItem key={u.email} value={u.email}>{getLabel(u.email)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
         )}
       </div>
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
+import { useUsuariosMap } from '@/hooks/useUsuariosMap';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,6 +36,7 @@ export default function OportunidadeForm() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAdmin } = useAuth();
+  const { usuarios, getLabel } = useUsuariosMap();
   const isEdit = !!id && id !== 'nova';
   const [form, setForm] = useState(defaultForm);
   const [orgaos, setOrgaos] = useState([]);
@@ -93,6 +95,10 @@ export default function OportunidadeForm() {
         valor_estimado: form.valor_estimado !== '' ? Number(form.valor_estimado) : null,
         probabilidade: form.probabilidade !== '' ? Number(form.probabilidade) : null,
       };
+      if (!isEdit) {
+        payload.created_by_user_id = user?.id;
+        payload.responsavel_id = isAdmin() ? form.responsavel_id : user?.email;
+      }
       if (isEdit) {
         await base44.entities.Oportunidade.update(id, payload);
         toast.success('Oportunidade atualizada com sucesso.');
@@ -287,10 +293,25 @@ export default function OportunidadeForm() {
                 rows={3}
               />
             </div>
-          </div>
-        </div>
+            </div>
+            </div>
 
-        <div className="flex justify-end gap-3">
+            {isAdmin() && usuarios.length > 0 && (
+            <div className="bg-card rounded-xl border border-border p-6 space-y-4">
+            <h3 className="text-sm font-semibold pb-2 border-b border-border">Atribuição</h3>
+            <div>
+              <Label>Responsável</Label>
+              <Select value={form.responsavel_id || ''} onValueChange={v => set('responsavel_id', v)}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione o responsável" /></SelectTrigger>
+                <SelectContent>
+                  {usuarios.map(u => <SelectItem key={u.email} value={u.email}>{getLabel(u.email)}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            </div>
+            )}
+
+            <div className="flex justify-end gap-3">
           <Link to="/oportunidades">
             <Button variant="outline" type="button">Cancelar</Button>
           </Link>
