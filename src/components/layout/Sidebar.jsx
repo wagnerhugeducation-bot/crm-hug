@@ -44,7 +44,7 @@ export default function Sidebar({ open, onClose }) {
             
             <div className="min-w-0">
               <span className="text-white font-bold tracking-wide leading-none text-3xl">HUG</span>
-              <span className="block text-sidebar-muted text-[10px] leading-tight mt-0.5">life skills education</span>
+              <span className="block text-sidebar-muted leading-tight mt-0.5 text-xs">life skills education</span>
             </div>
           </div>
           <button onClick={onClose} className="lg:hidden text-sidebar-muted hover:text-white ml-2">
