@@ -81,17 +81,32 @@
     "titulo"
   ],
   "rls": {
-    "read": {
+    "create": {
       "$or": [
         {
           "user_condition": {
-            "role": "Administrador"
+            "role": "admin"
           }
         },
         {
           "user_condition": {
-            "role": "Gestor"
+            "role": "user"
           }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.role": "Administrador"
+        },
+        {
+          "data.role": "Gestor"
         },
         {
           "created_by": "{{user.email}}"
@@ -108,13 +123,14 @@
       "$or": [
         {
           "user_condition": {
-            "role": "Administrador"
+            "role": "admin"
           }
         },
         {
-          "user_condition": {
-            "role": "Gestor"
-          }
+          "data.role": "Administrador"
+        },
+        {
+          "data.role": "Gestor"
         },
         {
           "created_by": "{{user.email}}"
@@ -128,8 +144,11 @@
       "$or": [
         {
           "user_condition": {
-            "role": "Administrador"
+            "role": "admin"
           }
+        },
+        {
+          "data.role": "Administrador"
         },
         {
           "created_by": "{{user.email}}"
