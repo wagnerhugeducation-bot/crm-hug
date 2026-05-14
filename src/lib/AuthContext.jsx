@@ -84,6 +84,8 @@ export const AuthProvider = ({ children }) => {
         const profile = await loadUserProfile(currentUser);
         if (!profile) {
           const newProfile = await base44.entities.User.create({
+            email: currentUser.email,
+            full_name: currentUser.full_name || currentUser.email,
             status_acesso: 'Ativo',
             role: 'Administrador',
             provider: currentUser?.provider || 'email',
@@ -104,6 +106,8 @@ export const AuthProvider = ({ children }) => {
 
       if (!profile) {
         profile = await base44.entities.User.create({
+          email: currentUser.email,
+          full_name: currentUser.full_name || currentUser.email,
           status_acesso: 'Bloqueado',
           role: 'Comercial',
           provider: currentUser?.provider || 'email',
