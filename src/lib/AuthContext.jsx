@@ -7,7 +7,7 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [userProfile, setUserProfile] = useState(null); // dados do User entity
+  const [userProfile, setUserProfile] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const [isLoadingPublicSettings, setIsLoadingPublicSettings] = useState(true);
@@ -21,7 +21,8 @@ export const AuthProvider = ({ children }) => {
 
   const loadUserProfile = async (authUser) => {
     try {
-      const users = await base44.entities.User.filter({ email: authUser.email });
+      // created_by é o email do usuário — funciona para o próprio usuário sem permissão de admin
+      const users = await base44.entities.User.filter({ created_by: authUser.email });
       return users?.[0] || null;
     } catch {
       return null;
@@ -75,22 +76,40 @@ export const AuthProvider = ({ children }) => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      // Carrega perfil do usuário na entidade User
-      const profile = await loadUserProfile(currentUser);
-      setUserProfile(profile);
+      const isSystemAdmin = currentUser?.role === 'admin';
 
-      // Se não tem perfil ainda, cria com status Bloqueado (aguarda liberação do admin)
-      if (!profile) {
-        // Admins da plataforma (owner) entram direto como Ativos
-        const isSystemAdmin = currentUser?.role === 'admin';
-        const newProfile = await base44.entities.User.create({
-          status_acesso: isSystemAdmin ? 'Ativo' : 'Bloqueado',
-          role: isSystemAdmin ? 'Administrador' : 'Comercial',
-          provider: currentUser?.provider || 'google',
-        });
-        setUserProfile(newProfile);
+      // Admins do sistema nunca precisam de perfil para acessar
+      if (isSystemAdmin) {
+        // Tenta carregar perfil mas não bloqueia se não existir
+        const profile = await loadUserProfile(currentUser);
+        if (!profile) {
+          const newProfile = await base44.entities.User.create({
+            status_acesso: 'Ativo',
+            role: 'Administrador',
+            provider: currentUser?.provider || 'email',
+          });
+          setUserProfile(newProfile);
+        } else {
+          setUserProfile(profile);
+        }
+        setIsAuthenticated(true);
+        setIsLoadingAuth(false);
+        setAuthChecked(true);
+        return;
       }
 
+      // Usuário normal: carrega ou cria perfil
+      let profile = await loadUserProfile(currentUser);
+
+      if (!profile) {
+        profile = await base44.entities.User.create({
+          status_acesso: 'Bloqueado',
+          role: 'Comercial',
+          provider: currentUser?.provider || 'email',
+        });
+      }
+
+      setUserProfile(profile);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
       setAuthChecked(true);
@@ -110,7 +129,6 @@ export const AuthProvider = ({ children }) => {
     setUserProfile(profile);
   };
 
-  // Verifica admin pelo role da entidade User OU pelo role do sistema (admin)
   const isAdmin = () =>
     userProfile?.role === 'Administrador' || user?.role === 'admin';
   const isAtivo = () => userProfile?.status_acesso === 'Ativo';
