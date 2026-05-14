@@ -103,19 +103,9 @@
           }
         },
         {
-          "data.role": "Administrador"
-        },
-        {
-          "data.role": "Gestor"
-        },
-        {
-          "created_by": "{{user.email}}"
-        },
-        {
-          "data.responsavel_id": "{{user.email}}"
-        },
-        {
-          "data.assigned_user_id": "{{user.id}}"
+          "user_condition": {
+            "role": "user"
+          }
         }
       ]
     },
