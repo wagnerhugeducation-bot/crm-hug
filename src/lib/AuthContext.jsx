@@ -20,23 +20,18 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const loadUserProfile = async (authUser) => {
-    try {
-      // Busca por email (campo salvo na entidade pelo admin)
-      const byEmail = await base44.entities.User.filter({ email: authUser.email });
-      if (byEmail?.length) {
-        const ativo = byEmail.find(u => u.status_acesso === 'Ativo');
-        return ativo || byEmail[0];
-      }
-      // Fallback: busca por created_by (auto-criados)
-      const byCreator = await base44.entities.User.filter({ created_by: authUser.email });
-      if (byCreator?.length) {
-        const ativo = byCreator.find(u => u.status_acesso === 'Ativo');
-        return ativo || byCreator[0];
-      }
-      return null;
-    } catch {
-      return null;
-    }
+    // Usa base44.auth.me() que retorna os dados mais atualizados do usuário
+    // incluindo campos customizados em 'data' (status_acesso, role)
+    const status_acesso = authUser?.status_acesso ?? authUser?.data?.status_acesso;
+    const role = authUser?.role === 'admin' ? 'Administrador' : (authUser?.data?.role || authUser?.role);
+
+    return {
+      status_acesso: status_acesso || null,
+      role,
+      email: authUser.email,
+      full_name: authUser.full_name,
+      id: authUser.id,
+    };
   };
 
   const checkAppState = async () => {
@@ -116,21 +111,11 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      // Usuário normal: carrega ou cria perfil
-      let profile = await loadUserProfile(currentUser);
+      // Usuário normal: carrega perfil a partir dos dados do próprio usuário
+      const profile = await loadUserProfile(currentUser);
 
-      if (!profile) {
-        profile = await base44.entities.User.create({
-          email: currentUser.email,
-          full_name: currentUser.full_name || currentUser.email,
-          status_acesso: 'Bloqueado',
-          role: 'Comercial',
-          provider: currentUser?.provider || 'email',
-          foto_google: currentUser?.picture || '',
-        });
-      }
-
-      setUserProfile(profile);
+      // Se não há dados de perfil, usa status Pendente (aguarda liberação do admin)
+      setUserProfile(profile || { status_acesso: 'Pendente', role: 'Comercial', email: currentUser.email, full_name: currentUser.full_name });
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
       setAuthChecked(true);
