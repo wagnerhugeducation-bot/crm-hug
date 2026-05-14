@@ -39,9 +39,7 @@ export default function OportunidadesList() {
     if (!user) return;
     setIsLoading(true);
     const [ops, orgList, bantList] = await Promise.all([
-      isAdmin()
-        ? base44.entities.Oportunidade.list('-created_date')
-        : base44.entities.Oportunidade.filter({ created_by: user.email }, '-created_date'),
+      base44.entities.Oportunidade.list('-created_date'),
       base44.entities.OrgaoPublico.list(),
       base44.entities.ScoreBANT.list(),
     ]);
