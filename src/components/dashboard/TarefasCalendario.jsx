@@ -184,13 +184,13 @@ export default function TarefasCalendario({ tarefas, isAdmin, usuarios, currentU
                 ) : (
                   <div className="space-y-2">
                     {tarefasDoDia.map(t => (
-                      <div key={t.id} className="flex items-center justify-between bg-muted/30 rounded-lg px-3 py-2">
+                      <Link key={t.id} to={`/tarefas/${t.id}/editar`} className="flex items-center justify-between bg-muted/30 hover:bg-muted/60 rounded-lg px-3 py-2 transition-colors">
                         <div className="min-w-0 flex-1 mr-3">
                           <p className="text-sm font-medium text-foreground truncate">{t.titulo}</p>
                           <p className="text-xs text-muted-foreground">{t.tipo || '—'}</p>
                         </div>
                         <StatusBadge value={t.prioridade} />
-                      </div>
+                      </Link>
                     ))}
                   </div>
                 )}
@@ -208,13 +208,13 @@ export default function TarefasCalendario({ tarefas, isAdmin, usuarios, currentU
                 </div>
                 <div className="space-y-2">
                   {tarefasSemData.slice(0, 5).map(t => (
-                    <div key={t.id} className="flex items-center justify-between bg-muted/30 rounded-lg px-3 py-2">
+                    <Link key={t.id} to={`/tarefas/${t.id}/editar`} className="flex items-center justify-between bg-muted/30 hover:bg-muted/60 rounded-lg px-3 py-2 transition-colors">
                       <div className="min-w-0 flex-1 mr-3">
                         <p className="text-sm font-medium text-foreground truncate">{t.titulo}</p>
                         <p className="text-xs text-muted-foreground">{t.tipo || '—'}</p>
                       </div>
                       <StatusBadge value={t.prioridade} />
-                    </div>
+                    </Link>
                   ))}
                   {tarefasSemData.length > 5 && (
                     <Link to="/tarefas" className="block text-xs text-primary hover:underline text-center mt-1">
