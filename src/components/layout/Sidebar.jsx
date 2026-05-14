@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Building2, Users, Target, CheckSquare,
-  FileText, Settings, ChevronRight, X, TrendingUp, UserCog
+  FileText, Settings, ChevronRight, X, TrendingUp
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
@@ -75,31 +75,7 @@ export default function Sidebar({ open, onClose }) {
             );
           })}
 
-          {/* Admin-only: Usuários */}
-          {isAdmin() && (
-            <>
-              <p className="text-sidebar-muted text-xs font-semibold uppercase tracking-wider px-3 mt-4 mb-2">Administração</p>
-              {(() => {
-                const active = location.pathname.startsWith('/usuarios');
-                return (
-                  <Link
-                    to="/usuarios"
-                    onClick={onClose}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group",
-                      active
-                        ? "bg-primary-mid/20 text-white border border-primary-mid/30"
-                        : "text-sidebar-muted hover:text-white hover:bg-white/5"
-                    )}
-                  >
-                    <UserCog className={cn("w-4 h-4 flex-shrink-0", active ? "text-primary-mid" : "text-sidebar-muted group-hover:text-white")} />
-                    <span className="flex-1">Usuários</span>
-                    {active && <ChevronRight className="w-3.5 h-3.5 text-primary-mid" />}
-                  </Link>
-                );
-              })()}
-            </>
-          )}
+
         </nav>
 
         {/* Bottom */}

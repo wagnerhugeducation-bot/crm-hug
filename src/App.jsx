@@ -7,8 +7,15 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { Toaster as Sonner } from 'sonner';
 
+// Auth pages
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
+
 // Layout
 import AppLayout from '@/components/layout/AppLayout';
+import AcessoBloqueado from '@/components/AcessoBloqueado';
 
 // Pages
 import Dashboard from '@/pages/Dashboard';
@@ -27,12 +34,9 @@ import TarefaForm from '@/pages/tarefas/TarefaForm';
 import DocumentosList from '@/pages/documentos/DocumentosList';
 import DocumentoForm from '@/pages/documentos/DocumentoForm';
 import Configuracoes from '@/pages/Configuracoes';
-import UsuariosList from '@/pages/usuarios/UsuariosList';
-import UsuarioForm from '@/pages/usuarios/UsuarioForm';
-import AcessoBloqueado from '@/components/AcessoBloqueado';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, isAuthenticated, userProfile } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, userProfile, navigateToLogin } = useAuth();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -45,60 +49,71 @@ const AuthenticatedApp = () => {
     );
   }
 
-  if (authError) {
-    if (authError.type === 'user_not_registered') return <UserNotRegisteredError />;
-    if (authError.type === 'auth_required') { navigateToLogin(); return null; }
-  }
+  if (authError?.type === 'user_not_registered') return <UserNotRegisteredError />;
 
-  // Bloqueia usuários não-ativos após autenticação
-  if (isAuthenticated && userProfile) {
-    if (userProfile.status_acesso === 'Pendente' || userProfile.status_acesso === 'Bloqueado') {
-      return <AcessoBloqueado />;
-    }
+  // Rotas públicas de autenticação
+  const publicRoutes = (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
+  );
+
+  // Usuário não autenticado → login
+  if (!isAuthenticated) return publicRoutes;
+
+  // Usuário autenticado mas pendente/bloqueado
+  if (userProfile && (userProfile.status_acesso === 'Pendente' || userProfile.status_acesso === 'Bloqueado')) {
+    return (
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="*" element={<AcessoBloqueado />} />
+      </Routes>
+    );
   }
 
   return (
     <Routes>
+      {/* Rotas públicas (caso já logado, redireciona) */}
+      <Route path="/login" element={<Navigate to="/" replace />} />
+      <Route path="/register" element={<Navigate to="/" replace />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+
       <Route element={<AppLayout />}>
-        {/* Dashboard */}
         <Route path="/" element={<Dashboard />} />
 
-        {/* Órgãos */}
         <Route path="/orgaos" element={<OrgaosList />} />
         <Route path="/orgaos/novo" element={<OrgaoForm />} />
         <Route path="/orgaos/:id" element={<OrgaoDetail />} />
         <Route path="/orgaos/:id/editar" element={<OrgaoForm />} />
 
-        {/* Contatos */}
         <Route path="/contatos" element={<ContatosList />} />
         <Route path="/contatos/novo" element={<ContatoForm />} />
         <Route path="/contatos/:id" element={<ContatoDetail />} />
         <Route path="/contatos/:id/editar" element={<ContatoForm />} />
 
-        {/* Oportunidades */}
         <Route path="/oportunidades" element={<OportunidadesList />} />
         <Route path="/oportunidades/nova" element={<OportunidadeForm />} />
         <Route path="/oportunidades/:id" element={<OportunidadeDetail />} />
         <Route path="/oportunidades/:id/editar" element={<OportunidadeForm />} />
         <Route path="/oportunidades/:id/bant" element={<BANTForm />} />
 
-        {/* Tarefas */}
         <Route path="/tarefas" element={<TarefasList />} />
         <Route path="/tarefas/nova" element={<TarefaForm />} />
         <Route path="/tarefas/:id/editar" element={<TarefaForm />} />
 
-        {/* Documentos */}
         <Route path="/documentos" element={<DocumentosList />} />
         <Route path="/documentos/novo" element={<DocumentoForm />} />
         <Route path="/documentos/:id/editar" element={<DocumentoForm />} />
 
-        {/* Configurações */}
         <Route path="/configuracoes" element={<Configuracoes />} />
-
-        {/* Usuários (admin only) */}
-        <Route path="/usuarios" element={<UsuariosList />} />
-        <Route path="/usuarios/novo" element={<UsuarioForm />} />
-        <Route path="/usuarios/:id/editar" element={<UsuarioForm />} />
       </Route>
 
       <Route path="*" element={<PageNotFound />} />
