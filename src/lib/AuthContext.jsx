@@ -87,6 +87,7 @@ export const AuthProvider = ({ children }) => {
             status_acesso: 'Ativo',
             role: 'Administrador',
             provider: currentUser?.provider || 'email',
+            foto_google: currentUser?.picture || '',
           });
           setUserProfile(newProfile);
         } else {
@@ -106,6 +107,7 @@ export const AuthProvider = ({ children }) => {
           status_acesso: 'Bloqueado',
           role: 'Comercial',
           provider: currentUser?.provider || 'email',
+          foto_google: currentUser?.picture || '',
         });
       }
 
