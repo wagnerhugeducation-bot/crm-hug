@@ -109,7 +109,9 @@ export const AuthProvider = ({ children }) => {
     setUserProfile(profile);
   };
 
-  const isAdmin = () => userProfile?.role === 'Administrador';
+  // Verifica admin pelo role da entidade User OU pelo role do sistema (admin)
+  const isAdmin = () =>
+    userProfile?.role === 'Administrador' || user?.role === 'admin';
   const isAtivo = () => userProfile?.status_acesso === 'Ativo';
 
   const logout = (shouldRedirect = true) => {

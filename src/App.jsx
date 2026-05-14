@@ -36,7 +36,7 @@ import DocumentoForm from '@/pages/documentos/DocumentoForm';
 import Configuracoes from '@/pages/Configuracoes';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, userProfile, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, userProfile, navigateToLogin, user } = useAuth();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -65,8 +65,8 @@ const AuthenticatedApp = () => {
   // Usuário não autenticado → login
   if (!isAuthenticated) return publicRoutes;
 
-  // Usuário autenticado mas pendente/bloqueado
-  if (userProfile && (userProfile.status_acesso === 'Pendente' || userProfile.status_acesso === 'Bloqueado')) {
+  // Usuário autenticado mas pendente/bloqueado (admins do sistema nunca bloqueados)
+  if (userProfile && user?.role !== 'admin' && (userProfile.status_acesso === 'Pendente' || userProfile.status_acesso === 'Bloqueado')) {
     return (
       <Routes>
         <Route path="/login" element={<Login />} />
