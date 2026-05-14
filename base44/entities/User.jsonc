@@ -1,0 +1,41 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "Administrador",
+        "Gestor",
+        "Comercial",
+        "Assistente",
+        "Visualiza\u00e7\u00e3o"
+      ],
+      "default": "Comercial",
+      "description": "Perfil de acesso do usu\u00e1rio"
+    },
+    "status_acesso": {
+      "type": "string",
+      "enum": [
+        "Pendente",
+        "Ativo",
+        "Bloqueado"
+      ],
+      "default": "Pendente",
+      "description": "Status de acesso do usu\u00e1rio"
+    },
+    "foto_google": {
+      "type": "string",
+      "description": "URL da foto do Google"
+    },
+    "provider": {
+      "type": "string",
+      "enum": [
+        "google",
+        "email"
+      ],
+      "default": "email",
+      "description": "Provedor de autentica\u00e7\u00e3o"
+    }
+  }
+}

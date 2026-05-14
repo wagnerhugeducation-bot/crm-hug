@@ -78,7 +78,15 @@
     },
     "responsavel_id": {
       "type": "string",
-      "description": "ID do respons\u00e1vel"
+      "description": "ID do respons\u00e1vel (email do usu\u00e1rio)"
+    },
+    "assigned_user_id": {
+      "type": "string",
+      "description": "ID do usu\u00e1rio atribu\u00eddo"
+    },
+    "created_by_user_id": {
+      "type": "string",
+      "description": "ID do usu\u00e1rio que criou"
     },
     "probabilidade": {
       "type": "number",
