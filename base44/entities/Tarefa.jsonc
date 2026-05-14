@@ -84,43 +84,42 @@
     "create": {
       "$or": [
         {
-          "user_condition": {
-            "role": "admin"
-          }
+          "{{user.data.role}}": "Administrador"
         },
         {
-          "user_condition": {
-            "role": "user"
-          }
+          "{{user.data.role}}": "Gestor"
+        },
+        {
+          "{{user.data.role}}": "Comercial"
+        },
+        {
+          "{{user.data.role}}": "Assistente"
         }
       ]
     },
     "read": {
       "$or": [
         {
-          "user_condition": {
-            "role": "admin"
-          }
+          "{{user.data.role}}": "Administrador"
         },
         {
-          "user_condition": {
-            "role": "user"
-          }
+          "{{user.data.role}}": "Gestor"
+        },
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "data.responsavel_id": "{{user.email}}"
         }
       ]
     },
     "update": {
       "$or": [
         {
-          "user_condition": {
-            "role": "admin"
-          }
+          "{{user.data.role}}": "Administrador"
         },
         {
-          "data.role": "Administrador"
-        },
-        {
-          "data.role": "Gestor"
+          "{{user.data.role}}": "Gestor"
         },
         {
           "created_by": "{{user.email}}"
@@ -133,12 +132,7 @@
     "delete": {
       "$or": [
         {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "data.role": "Administrador"
+          "{{user.data.role}}": "Administrador"
         },
         {
           "created_by": "{{user.email}}"
