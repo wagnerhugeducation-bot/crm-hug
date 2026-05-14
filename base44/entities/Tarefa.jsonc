@@ -103,6 +103,16 @@
     "read": {
       "$or": [
         {
+          "user_condition": {
+            "role": "Administrador"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "Gestor"
+          }
+        },
+        {
           "created_by": "{{user.email}}"
         },
         {
@@ -110,28 +120,12 @@
         },
         {
           "data.assigned_user_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "Administrador"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "Gestor"
-          }
         }
       ]
     },
     "update": {
       "$or": [
         {
-          "created_by": "{{user.email}}"
-        },
-        {
-          "data.responsavel_id": "{{user.email}}"
-        },
-        {
           "user_condition": {
             "role": "Administrador"
           }
@@ -140,23 +134,24 @@
           "user_condition": {
             "role": "Gestor"
           }
+        },
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "data.responsavel_id": "{{user.email}}"
         }
       ]
     },
     "delete": {
       "$or": [
         {
-          "created_by": "{{user.email}}"
-        },
-        {
           "user_condition": {
             "role": "Administrador"
           }
         },
         {
-          "user_condition": {
-            "role": "Gestor"
-          }
+          "created_by": "{{user.email}}"
         }
       ]
     }

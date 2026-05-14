@@ -97,10 +97,7 @@ export default function OportunidadeForm() {
         await base44.entities.Oportunidade.update(id, payload);
         toast.success('Oportunidade atualizada com sucesso.');
       } else {
-        await base44.entities.Oportunidade.create({
-          ...payload,
-          responsavel_id: user?.email,
-        });
+        await base44.entities.Oportunidade.create(payload);
         toast.success('Oportunidade cadastrada com sucesso.');
       }
       navigate('/oportunidades');

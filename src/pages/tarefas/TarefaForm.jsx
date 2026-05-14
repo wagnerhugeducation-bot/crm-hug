@@ -57,10 +57,7 @@ export default function TarefaForm() {
       await base44.entities.Tarefa.update(id, form);
       toast.success('Tarefa atualizada.');
     } else {
-      await base44.entities.Tarefa.create({
-        ...form,
-        responsavel_id: user?.email,
-      });
+      await base44.entities.Tarefa.create(form);
       toast.success('Tarefa criada.');
     }
     navigate('/tarefas');
