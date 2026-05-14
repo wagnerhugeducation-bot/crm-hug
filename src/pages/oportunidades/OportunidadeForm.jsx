@@ -97,7 +97,7 @@ export default function OportunidadeForm() {
       };
       if (!isEdit) {
         payload.created_by_user_id = user?.id;
-        payload.responsavel_id = isAdmin() ? form.responsavel_id : user?.email;
+        payload.responsavel_id = isAdmin() ? (form.responsavel_id || user?.email) : user?.email;
       }
       if (isEdit) {
         await base44.entities.Oportunidade.update(id, payload);

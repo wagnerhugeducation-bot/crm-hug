@@ -58,7 +58,7 @@ export default function TarefaForm() {
     const payload = isEdit ? form : {
       ...form,
       created_by_user_id: user?.id,
-      responsavel_id: isAdmin() ? form.responsavel_id : user?.email
+      responsavel_id: isAdmin() ? (form.responsavel_id || user?.email) : user?.email
     };
     if (isEdit) {
       await base44.entities.Tarefa.update(id, payload);
