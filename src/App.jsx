@@ -27,9 +27,12 @@ import TarefaForm from '@/pages/tarefas/TarefaForm';
 import DocumentosList from '@/pages/documentos/DocumentosList';
 import DocumentoForm from '@/pages/documentos/DocumentoForm';
 import Configuracoes from '@/pages/Configuracoes';
+import UsuariosList from '@/pages/usuarios/UsuariosList';
+import UsuarioForm from '@/pages/usuarios/UsuarioForm';
+import AcessoBloqueado from '@/components/AcessoBloqueado';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, isAuthenticated, userProfile } = useAuth();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -45,6 +48,13 @@ const AuthenticatedApp = () => {
   if (authError) {
     if (authError.type === 'user_not_registered') return <UserNotRegisteredError />;
     if (authError.type === 'auth_required') { navigateToLogin(); return null; }
+  }
+
+  // Bloqueia usuários não-ativos após autenticação
+  if (isAuthenticated && userProfile) {
+    if (userProfile.status_acesso === 'Pendente' || userProfile.status_acesso === 'Bloqueado') {
+      return <AcessoBloqueado />;
+    }
   }
 
   return (
@@ -84,6 +94,11 @@ const AuthenticatedApp = () => {
 
         {/* Configurações */}
         <Route path="/configuracoes" element={<Configuracoes />} />
+
+        {/* Usuários (admin only) */}
+        <Route path="/usuarios" element={<UsuariosList />} />
+        <Route path="/usuarios/novo" element={<UsuarioForm />} />
+        <Route path="/usuarios/:id/editar" element={<UsuarioForm />} />
       </Route>
 
       <Route path="*" element={<PageNotFound />} />

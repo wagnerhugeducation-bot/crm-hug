@@ -32,6 +32,11 @@ const variants = {
   'Alta':    'bg-orange-50 text-orange-700 border-orange-200',
   'Urgente': 'bg-red-50 text-red-700 border-red-200',
 
+  // Status de usuário
+  'Pendente':     'bg-amber-50 text-amber-700 border-amber-200',
+  'Ativo':        'bg-green-50 text-green-700 border-green-200',
+  'Bloqueado':    'bg-red-50 text-red-700 border-red-200',
+
   // BANT
   'Frio':         'bg-slate-100 text-slate-600 border-slate-200',
   'Morno':        'bg-amber-50 text-amber-700 border-amber-200',

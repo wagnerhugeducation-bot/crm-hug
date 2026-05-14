@@ -11,6 +11,7 @@ const pageTitles = {
   '/tarefas': 'Tarefas',
   '/documentos': 'Documentos',
   '/configuracoes': 'Configurações',
+  '/usuarios': 'Usuários',
 };
 
 export default function AppLayout() {

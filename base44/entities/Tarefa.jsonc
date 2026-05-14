@@ -63,6 +63,14 @@
       "type": "string",
       "description": "ID do respons\u00e1vel"
     },
+    "assigned_user_id": {
+      "type": "string",
+      "description": "ID do usu\u00e1rio atribu\u00eddo"
+    },
+    "created_by_user_id": {
+      "type": "string",
+      "description": "ID do usu\u00e1rio que criou"
+    },
     "concluida_em": {
       "type": "string",
       "format": "date-time",
@@ -71,19 +79,5 @@
   },
   "required": [
     "titulo"
-  ],
-  "rls": {
-    "create": {
-      "created_by": "{{user.email}}"
-    },
-    "read": {
-      "created_by": "{{user.email}}"
-    },
-    "update": {
-      "created_by": "{{user.email}}"
-    },
-    "delete": {
-      "created_by": "{{user.email}}"
-    }
-  }
+  ]
 }
