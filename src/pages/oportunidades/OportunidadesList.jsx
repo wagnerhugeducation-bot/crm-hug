@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
+import { useUsuariosMap } from '@/hooks/useUsuariosMap';
 import { Plus, Target, Pencil, Trash2, Eye } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -19,12 +20,14 @@ const PAGE_SIZE = 10;
 export default function OportunidadesList() {
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
+  const { usuarios, getLabel } = useUsuariosMap();
   const [data, setData] = useState([]);
   const [orgaos, setOrgaos] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterEtapa, setFilterEtapa] = useState('all');
+  const [filterCriador, setFilterCriador] = useState('all');
   const [page, setPage] = useState(1);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -53,7 +56,8 @@ export default function OportunidadesList() {
     );
     const matchStatus = filterStatus === 'all' || d.status === filterStatus;
     const matchEtapa = filterEtapa === 'all' || d.etapa_pipeline === filterEtapa;
-    return matchSearch && matchStatus && matchEtapa;
+    const matchCriador = filterCriador === 'all' || d.created_by === filterCriador;
+    return matchSearch && matchStatus && matchEtapa && matchCriador;
   });
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -84,6 +88,10 @@ export default function OportunidadesList() {
     {
       key: 'probabilidade', label: '%',
       render: v => v ? `${v}%` : '—'
+    },
+    {
+      key: 'created_by', label: 'Criador',
+      render: v => <span className="text-xs text-muted-foreground">{getLabel(v)}</span>
     },
     {
       key: 'actions', label: '', render: (_, row) => (
@@ -144,6 +152,17 @@ export default function OportunidadesList() {
             ))}
           </SelectContent>
         </Select>
+        {isAdmin() && usuarios.length > 0 && (
+          <Select value={filterCriador} onValueChange={v => { setFilterCriador(v); setPage(1); }}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Criador" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os Criadores</SelectItem>
+              {usuarios.map(u => (
+                <SelectItem key={u.email} value={u.email}>{getLabel(u.email)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {!isLoading && filtered.length === 0 ? (

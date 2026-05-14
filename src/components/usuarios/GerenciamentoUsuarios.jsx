@@ -10,7 +10,7 @@ import SearchInput from '@/components/ui/SearchInput';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { toast } from 'sonner';
-import { CheckCircle, ShieldOff, ShieldCheck, Trash2, Plus, X } from 'lucide-react';
+import { CheckCircle, ShieldOff, ShieldCheck, Trash2, Plus, X, Pencil, Check } from 'lucide-react';
 
 const ROLES = ['Administrador', 'Gestor', 'Comercial', 'Assistente', 'Visualização'];
 
@@ -26,6 +26,8 @@ export default function GerenciamentoUsuarios() {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('Comercial');
   const [isInviting, setIsInviting] = useState(false);
+  const [editingNickname, setEditingNickname] = useState(null); // { id, value }
+
 
   const load = async () => {
     setIsLoading(true);
@@ -37,7 +39,7 @@ export default function GerenciamentoUsuarios() {
   useEffect(() => { load(); }, []);
 
   const filtered = data.filter(d => {
-    const matchSearch = [d.full_name, d.email].some(f => f?.toLowerCase().includes(search.toLowerCase()));
+    const matchSearch = [d.full_name, d.email, d.nickname].some(f => f?.toLowerCase().includes(search.toLowerCase()));
     const matchStatus = filterStatus === 'all' || d.status_acesso === filterStatus;
     return matchSearch && matchStatus;
   });
@@ -81,6 +83,13 @@ export default function GerenciamentoUsuarios() {
     }
   };
 
+  const handleSaveNickname = async (id, value) => {
+    await base44.entities.User.update(id, { nickname: value.trim() });
+    toast.success('Apelido atualizado.');
+    setEditingNickname(null);
+    load();
+  };
+
   const columns = [
     {
       key: 'full_name', label: 'Usuário', sortable: true,
@@ -100,6 +109,38 @@ export default function GerenciamentoUsuarios() {
           </div>
         </div>
       )
+    },
+    {
+      key: 'nickname', label: 'Apelido',
+      render: (v, row) => {
+        const isEditing = editingNickname?.id === row.id;
+        if (isEditing) {
+          return (
+            <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+              <Input
+                autoFocus
+                value={editingNickname.value}
+                onChange={e => setEditingNickname(n => ({ ...n, value: e.target.value }))}
+                onKeyDown={e => { if (e.key === 'Enter') handleSaveNickname(row.id, editingNickname.value); if (e.key === 'Escape') setEditingNickname(null); }}
+                className="h-7 text-xs w-32"
+                placeholder="apelido"
+              />
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-green-600" onClick={() => handleSaveNickname(row.id, editingNickname.value)}>
+                <Check className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          );
+        }
+        return (
+          <div className="flex items-center gap-1 group" onClick={e => e.stopPropagation()}>
+            <span className="text-xs text-muted-foreground">{v ? `@${v}` : '—'}</span>
+            <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100"
+              onClick={() => setEditingNickname({ id: row.id, value: v || '' })}>
+              <Pencil className="w-3 h-3" />
+            </Button>
+          </div>
+        );
+      }
     },
     {
       key: 'role', label: 'Perfil', sortable: true,

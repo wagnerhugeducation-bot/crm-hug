@@ -24,6 +24,10 @@
       "default": "Bloqueado",
       "description": "Status de acesso do usu\u00e1rio"
     },
+    "nickname": {
+      "type": "string",
+      "description": "Apelido/nome de exibi\u00e7\u00e3o do usu\u00e1rio"
+    },
     "foto_google": {
       "type": "string",
       "description": "URL da foto do Google"
