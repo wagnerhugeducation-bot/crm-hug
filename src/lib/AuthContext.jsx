@@ -21,11 +21,19 @@ export const AuthProvider = ({ children }) => {
 
   const loadUserProfile = async (authUser) => {
     try {
-      const users = await base44.entities.User.filter({ created_by: authUser.email });
-      if (!users?.length) return null;
-      // Se houver múltiplos, prefere o com status 'Ativo'
-      const ativo = users.find(u => u.status_acesso === 'Ativo');
-      return ativo || users[0];
+      // Busca por email (campo salvo na entidade pelo admin)
+      const byEmail = await base44.entities.User.filter({ email: authUser.email });
+      if (byEmail?.length) {
+        const ativo = byEmail.find(u => u.status_acesso === 'Ativo');
+        return ativo || byEmail[0];
+      }
+      // Fallback: busca por created_by (auto-criados)
+      const byCreator = await base44.entities.User.filter({ created_by: authUser.email });
+      if (byCreator?.length) {
+        const ativo = byCreator.find(u => u.status_acesso === 'Ativo');
+        return ativo || byCreator[0];
+      }
+      return null;
     } catch {
       return null;
     }
