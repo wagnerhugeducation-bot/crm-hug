@@ -10,7 +10,8 @@ import TarefasCalendario from '@/components/dashboard/TarefasCalendario';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function Dashboard() {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin: isAdminFn, userProfile } = useAuth();
+  const isAdmin = isAdminFn();
   const [allOportunidades, setAllOportunidades] = useState([]);
   const [allOrgaos, setAllOrgaos] = useState([]);
   const [allContatos, setAllContatos] = useState([]);
@@ -18,8 +19,11 @@ export default function Dashboard() {
   const [usuarios, setUsuarios] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filtroUsuario, setFiltroUsuario] = useState('__me__');
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    if (loaded) return;
+    setLoaded(true);
     const load = async () => {
       const [orgaos, contatos, oportunidades, todasTarefas, listaUsuarios] = await Promise.all([
         base44.entities.OrgaoPublico.list(),
@@ -36,7 +40,7 @@ export default function Dashboard() {
       setIsLoading(false);
     };
     load();
-  }, [isAdmin]);
+  }, []);
 
   /* ── Filtro ── */
   // Para admins: '__all__' = todos, '__me__' = próprio usuário, ou email específico
