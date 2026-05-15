@@ -35,7 +35,8 @@ function SectionCard({ title, icon: Icon, children }) {
 }
 
 export default function Relatorios() {
-  const { isAdmin, user } = useAuth();
+  const { isAdmin, user, userProfile } = useAuth();
+  const adminMode = isAdmin();
   const [oportunidades, setOportunidades] = useState([]);
   const [bantScores, setBantScores] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
@@ -46,19 +47,19 @@ export default function Relatorios() {
     Promise.all([
       base44.entities.Oportunidade.list(),
       base44.entities.ScoreBANT.list(),
-      isAdmin ? base44.entities.User.list() : Promise.resolve([]),
+      adminMode ? base44.entities.User.list() : Promise.resolve([]),
     ]).then(([ops, bants, users]) => {
       setOportunidades(ops);
       setBantScores(bants);
       setUsuarios(users);
       setIsLoading(false);
     });
-  }, [isAdmin]);
+  }, [adminMode]);
 
   /* ── Filtro por usuário ── */
   const opsFiltradas = useMemo(() => {
     // Não-admin: mostra apenas as suas próprias oportunidades
-    if (!isAdmin()) {
+    if (!adminMode) {
       return oportunidades.filter(
         (o) => o.responsavel_id === user?.email || o.created_by === user?.email
       );
@@ -67,7 +68,7 @@ export default function Relatorios() {
     return oportunidades.filter(
       (o) => o.responsavel_id === filtroUsuario || o.created_by === filtroUsuario
     );
-  }, [oportunidades, filtroUsuario, isAdmin, user]);
+  }, [oportunidades, filtroUsuario, adminMode, user]);
 
   /* ── 1. Volume por etapa do pipeline ── */
   const volumeEtapa = ETAPAS.map((etapa) => {
@@ -137,7 +138,7 @@ export default function Relatorios() {
         title="Relatórios"
         subtitle="Análise do pipeline comercial"
         actions={
-          isAdmin && (
+          adminMode && (
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 text-muted-foreground" />
               <Select value={filtroUsuario} onValueChange={setFiltroUsuario}>
