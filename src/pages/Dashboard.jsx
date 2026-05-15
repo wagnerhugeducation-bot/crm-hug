@@ -173,6 +173,7 @@ export default function Dashboard() {
           usuarios={usuarios}
           currentUserEmail={user?.email}
           isLoading={isLoading}
+          filtroExterno={emailFiltro}
         />
       </div>
     </div>

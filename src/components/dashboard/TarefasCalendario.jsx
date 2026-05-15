@@ -16,21 +16,27 @@ const PRIORIDADE_DOT = {
   Baixa: 'bg-slate-400',
 };
 
-export default function TarefasCalendario({ tarefas, isAdmin, usuarios, currentUserEmail, isLoading }) {
+export default function TarefasCalendario({ tarefas, isAdmin, usuarios, currentUserEmail, isLoading, filtroExterno }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
   const [filtroUsuario, setFiltroUsuario] = useState('__me__'); // '__me__' | '__all__' | email
 
   /* ─── filtro ─── */
+  // Se há filtro externo (do Dashboard), usa as tarefas já filtradas diretamente
+  // Caso contrário, aplica o filtro interno do próprio calendário
   const tarefasFiltradas = useMemo(() => {
     let list = tarefas.filter(t => t.status === 'Pendente' || t.status === 'Em Andamento');
+    if (filtroExterno !== undefined) {
+      // tarefas já vêm filtradas do Dashboard, apenas aplica filtro de status
+      return list;
+    }
     if (filtroUsuario === '__me__') {
       list = list.filter(t => t.created_by === currentUserEmail || t.responsavel_id === currentUserEmail);
     } else if (filtroUsuario !== '__all__') {
       list = list.filter(t => t.created_by === filtroUsuario || t.responsavel_id === filtroUsuario);
     }
     return list;
-  }, [tarefas, filtroUsuario, currentUserEmail]);
+  }, [tarefas, filtroUsuario, currentUserEmail, filtroExterno]);
 
   /* ─── dias do calendário ─── */
   const calStart = startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 0 });
