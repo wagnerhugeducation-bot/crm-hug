@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Pencil, Target, CheckSquare, FileText, Star } from 'lucide-react';
+import { ArrowLeft, Pencil, Target, CheckSquare, FileText, Star, Clock } from 'lucide-react';
 import BANTGauge from '@/components/bant/BANTGauge';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/ui/PageHeader';
 import StatusBadge from '@/components/ui/StatusBadge';
 import DataTable from '@/components/ui/DataTable';
+import LinhaDoTempo from '@/components/oportunidades/LinhaDoTempo';
 
 function InfoRow({ label, value }) {
   if (!value) return null;
@@ -129,7 +130,7 @@ export default function OportunidadeDetail() {
           </div>
         </div>
 
-        {/* Tarefas + Documentos */}
+        {/* Tarefas + Documentos + Linha do Tempo */}
         <div className="lg:col-span-2 space-y-5">
           <div className="bg-card rounded-xl border border-border">
             <div className="flex items-center justify-between px-5 py-4 border-b border-border">
@@ -174,6 +175,17 @@ export default function OportunidadeDetail() {
               data={documentos}
               emptyMessage="Nenhum documento vinculado."
             />
+          </div>
+
+          {/* Linha do Tempo */}
+          <div className="bg-card rounded-xl border border-border">
+            <div className="flex items-center gap-2 px-5 py-4 border-b border-border">
+              <Clock className="w-4 h-4 text-primary" />
+              <h3 className="text-sm font-semibold">Histórico de Atividades</h3>
+            </div>
+            <div className="p-5">
+              <LinhaDoTempo oportunidadeId={id} />
+            </div>
           </div>
         </div>
       </div>

@@ -80,6 +80,19 @@ export default function OportunidadeForm() {
     return errs;
   };
 
+  const logAtividade = async (oportunidadeId, tipo, descricao, campo, valorAnterior, valorNovo) => {
+    await base44.entities.AtividadeLog.create({
+      oportunidade_id: oportunidadeId,
+      tipo,
+      campo: campo || null,
+      valor_anterior: valorAnterior != null ? String(valorAnterior) : null,
+      valor_novo: valorNovo != null ? String(valorNovo) : null,
+      descricao,
+      usuario_email: user?.email || null,
+      usuario_nome: user?.full_name || user?.email || null,
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
@@ -98,13 +111,33 @@ export default function OportunidadeForm() {
       if (!isEdit) {
         payload.created_by_user_id = user?.id;
         payload.responsavel_id = isAdmin() ? (form.responsavel_id || user?.email) : user?.email;
-      }
-      if (isEdit) {
-        await base44.entities.Oportunidade.update(id, payload);
-        toast.success('Oportunidade atualizada com sucesso.');
-      } else {
-        await base44.entities.Oportunidade.create(payload);
+        const nova = await base44.entities.Oportunidade.create(payload);
+        await logAtividade(nova.id, 'criacao', `Oportunidade "${nova.nome}" criada.`);
         toast.success('Oportunidade cadastrada com sucesso.');
+      } else {
+        // Buscar estado anterior para detectar mudanças
+        const [anterior] = await base44.entities.Oportunidade.filter({ id });
+        await base44.entities.Oportunidade.update(id, payload);
+
+        const logs = [];
+        if (anterior?.status !== payload.status) {
+          logs.push(logAtividade(id, 'status', `Status alterado.`, 'Status', anterior?.status, payload.status));
+        }
+        if (anterior?.etapa_pipeline !== payload.etapa_pipeline) {
+          logs.push(logAtividade(id, 'etapa', `Etapa do pipeline alterada.`, 'Etapa', anterior?.etapa_pipeline, payload.etapa_pipeline));
+        }
+        if (anterior?.valor_estimado !== payload.valor_estimado) {
+          const fmtBRL = (v) => v != null ? `R$ ${Number(v).toLocaleString('pt-BR')}` : '—';
+          logs.push(logAtividade(id, 'valor', `Valor estimado alterado.`, 'Valor', fmtBRL(anterior?.valor_estimado), fmtBRL(payload.valor_estimado)));
+        }
+        if (anterior?.notas !== payload.notas && payload.notas) {
+          logs.push(logAtividade(id, 'notas', `Observações atualizadas.`, 'Notas', null, null));
+        }
+        if (logs.length === 0) {
+          logs.push(logAtividade(id, 'edicao_geral', `Oportunidade editada.`));
+        }
+        await Promise.all(logs);
+        toast.success('Oportunidade atualizada com sucesso.');
       }
       navigate('/oportunidades');
     } finally {
