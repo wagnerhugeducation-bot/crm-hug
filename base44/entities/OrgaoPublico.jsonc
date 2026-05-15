@@ -88,6 +88,118 @@
     "notas": {
       "type": "string",
       "description": "Observa\u00e7\u00f5es gerais"
+    },
+    "mat_bercario1": {
+      "type": "number",
+      "description": "Matr\u00edculas - Ber\u00e7\u00e1rio 1"
+    },
+    "mat_bercario2": {
+      "type": "number",
+      "description": "Matr\u00edculas - Ber\u00e7\u00e1rio 2"
+    },
+    "mat_maternal1": {
+      "type": "number",
+      "description": "Matr\u00edculas - Maternal I"
+    },
+    "mat_maternal2": {
+      "type": "number",
+      "description": "Matr\u00edculas - Maternal II"
+    },
+    "mat_etapa1": {
+      "type": "number",
+      "description": "Matr\u00edculas - Etapa I"
+    },
+    "mat_etapa2": {
+      "type": "number",
+      "description": "Matr\u00edculas - Etapa II"
+    },
+    "mat_1ano": {
+      "type": "number",
+      "description": "Matr\u00edculas - 1\u00ba Ano EF"
+    },
+    "mat_2ano": {
+      "type": "number",
+      "description": "Matr\u00edculas - 2\u00ba Ano EF"
+    },
+    "mat_3ano": {
+      "type": "number",
+      "description": "Matr\u00edculas - 3\u00ba Ano EF"
+    },
+    "mat_4ano": {
+      "type": "number",
+      "description": "Matr\u00edculas - 4\u00ba Ano EF"
+    },
+    "mat_5ano": {
+      "type": "number",
+      "description": "Matr\u00edculas - 5\u00ba Ano EF"
+    },
+    "mat_6ano": {
+      "type": "number",
+      "description": "Matr\u00edculas - 6\u00ba Ano EF"
+    },
+    "mat_7ano": {
+      "type": "number",
+      "description": "Matr\u00edculas - 7\u00ba Ano EF"
+    },
+    "mat_8ano": {
+      "type": "number",
+      "description": "Matr\u00edculas - 8\u00ba Ano EF"
+    },
+    "mat_9ano": {
+      "type": "number",
+      "description": "Matr\u00edculas - 9\u00ba Ano EF"
+    },
+    "mat_em1": {
+      "type": "number",
+      "description": "Matr\u00edculas - 1\u00ba Ano EM"
+    },
+    "mat_em2": {
+      "type": "number",
+      "description": "Matr\u00edculas - 2\u00ba Ano EM"
+    },
+    "mat_em3": {
+      "type": "number",
+      "description": "Matr\u00edculas - 3\u00ba Ano EM"
+    },
+    "doc_bercario": {
+      "type": "number",
+      "description": "Docentes - Ber\u00e7\u00e1rio"
+    },
+    "doc_etapa1": {
+      "type": "number",
+      "description": "Docentes - Etapa I"
+    },
+    "doc_etapa2": {
+      "type": "number",
+      "description": "Docentes - Etapa II"
+    },
+    "doc_ef1": {
+      "type": "number",
+      "description": "Docentes - Ensino Fundamental 1"
+    },
+    "doc_ef2": {
+      "type": "number",
+      "description": "Docentes - Ensino Fundamental 2"
+    },
+    "doc_em": {
+      "type": "number",
+      "description": "Docentes - Ensino M\u00e9dio"
+    },
+    "ideb_ef1": {
+      "type": "number",
+      "description": "IDEB - Anos Iniciais (EF1)"
+    },
+    "ideb_ef2": {
+      "type": "number",
+      "description": "IDEB - Anos Finais (EF2)"
+    },
+    "ideb_em": {
+      "type": "number",
+      "description": "IDEB - Ensino M\u00e9dio"
+    },
+    "ideb_ano": {
+      "type": "number",
+      "description": "Ano de refer\u00eancia do IDEB"
     }
   },
   "required": [

@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import PageHeader from '@/components/ui/PageHeader';
+import QuadroEducacional from '@/components/orgaos/QuadroEducacional';
 import { toast } from 'sonner';
 import { ArrowLeft, Save } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -18,7 +19,15 @@ const defaultForm = {
   nome: '', cnpj: '', esfera: '', poder: '', secretaria: '',
   cidade: '', estado: '', cep: '', endereco: '', telefone: '',
   email_institucional: '', site: '', portal_compras: '',
-  relacionamento_status: 'Prospecto', notas: ''
+  relacionamento_status: 'Prospecto', notas: '',
+  mat_bercario1: null, mat_bercario2: null, mat_maternal1: null, mat_maternal2: null,
+  mat_etapa1: null, mat_etapa2: null,
+  mat_1ano: null, mat_2ano: null, mat_3ano: null, mat_4ano: null, mat_5ano: null,
+  mat_6ano: null, mat_7ano: null, mat_8ano: null, mat_9ano: null,
+  mat_em1: null, mat_em2: null, mat_em3: null,
+  doc_bercario: null, doc_etapa1: null, doc_etapa2: null,
+  doc_ef1: null, doc_ef2: null, doc_em: null,
+  ideb_ef1: null, ideb_ef2: null, ideb_em: null, ideb_ano: null,
 };
 
 function FieldError({ msg }) {
@@ -248,6 +257,9 @@ export default function OrgaoForm() {
             </div>
           </div>
         </div>
+
+        {/* Dados Educacionais */}
+        <QuadroEducacional form={form} set={set} />
 
         <div className="flex justify-end gap-3">
           <Link to="/orgaos">
