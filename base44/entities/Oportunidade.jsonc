@@ -106,16 +106,40 @@
     "orgao_id"
   ],
   "rls": {
-    "read": {
+    "create": {
       "$or": [
         {
           "user_condition": {
-            "role": "admin"
+            "role": "Administrador"
           }
         },
         {
           "user_condition": {
-            "role": "user"
+            "role": "Gestor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "Comercial"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "Assistente"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "Administrador"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "Gestor"
           }
         },
         {
