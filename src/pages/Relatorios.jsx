@@ -57,11 +57,17 @@ export default function Relatorios() {
 
   /* ── Filtro por usuário ── */
   const opsFiltradas = useMemo(() => {
+    // Não-admin: mostra apenas as suas próprias oportunidades
+    if (!isAdmin()) {
+      return oportunidades.filter(
+        (o) => o.responsavel_id === user?.email || o.created_by === user?.email
+      );
+    }
     if (filtroUsuario === '__all__') return oportunidades;
     return oportunidades.filter(
       (o) => o.responsavel_id === filtroUsuario || o.created_by === filtroUsuario
     );
-  }, [oportunidades, filtroUsuario]);
+  }, [oportunidades, filtroUsuario, isAdmin, user]);
 
   /* ── 1. Volume por etapa do pipeline ── */
   const volumeEtapa = ETAPAS.map((etapa) => {
