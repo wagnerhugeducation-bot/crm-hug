@@ -44,17 +44,46 @@ export default function Relatorios() {
   const [filtroUsuario, setFiltroUsuario] = useState('__all__');
 
   useEffect(() => {
-    Promise.all([
-      base44.entities.Oportunidade.list(),
-      base44.entities.ScoreBANT.list(),
-      adminMode ? base44.entities.User.list() : Promise.resolve([]),
-    ]).then(([ops, bants, users]) => {
-      setOportunidades(ops);
-      setBantScores(bants);
-      setUsuarios(users);
+    if (!user?.email) return;
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      if (adminMode) {
+        const [ops, bants, users] = await Promise.all([
+          base44.entities.Oportunidade.list(),
+          base44.entities.ScoreBANT.list(),
+          base44.entities.User.list(),
+        ]);
+        setOportunidades(ops);
+        setBantScores(bants);
+        setUsuarios(users);
+      } else {
+        // Busca oportunidades filtradas pelo email do usuário no backend
+        const [opsByResponsavel, opsByCreator] = await Promise.all([
+          base44.entities.Oportunidade.filter({ responsavel_id: user.email }),
+          base44.entities.Oportunidade.filter({ created_by: user.email }),
+        ]);
+        // Unifica e remove duplicatas pelo id
+        const opsMap = {};
+        [...opsByResponsavel, ...opsByCreator].forEach((o) => { opsMap[o.id] = o; });
+        const ops = Object.values(opsMap);
+        setOportunidades(ops);
+
+        // Busca BANT scores apenas para as oportunidades do usuário
+        if (ops.length > 0) {
+          const bants = await base44.entities.ScoreBANT.list();
+          const opsIds = new Set(ops.map((o) => o.id));
+          setBantScores(bants.filter((b) => opsIds.has(b.oportunidade_id)));
+        } else {
+          setBantScores([]);
+        }
+        setUsuarios([]);
+      }
       setIsLoading(false);
-    });
-  }, [adminMode]);
+    };
+
+    fetchData();
+  }, [adminMode, user?.email]);
 
   /* ── Filtro por usuário ── */
   const opsFiltradas = useMemo(() => {
