@@ -2,7 +2,20 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { useUsuariosMap } from '@/hooks/useUsuariosMap';
-import { Plus, CheckSquare, Pencil, Trash2, CheckCircle2 } from 'lucide-react';
+import { Plus, CheckSquare, Pencil, Trash2, CheckCircle2, Download } from 'lucide-react';
+import ExportModal from '@/components/exportacao/ExportModal';
+
+const EXPORT_FIELDS = [
+  { key: 'titulo', label: 'Título' },
+  { key: 'tipo', label: 'Tipo' },
+  { key: 'descricao', label: 'Descrição' },
+  { key: 'status', label: 'Status' },
+  { key: 'prioridade', label: 'Prioridade' },
+  { key: 'data_vencimento', label: 'Vencimento' },
+  { key: 'responsavel_id', label: 'Responsável' },
+  { key: 'created_by', label: 'Criador' },
+  { key: 'concluida_em', label: 'Concluída em' },
+];
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import DataTable from '@/components/ui/DataTable';
@@ -30,6 +43,7 @@ export default function TarefasList() {
   const [page, setPage] = useState(1);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showExport, setShowExport] = useState(false);
 
   const load = async () => {
     if (!user) return;
@@ -104,7 +118,14 @@ export default function TarefasList() {
       <PageHeader
         title="Tarefas"
         subtitle={`${data.filter(t => t.status === 'Pendente').length} pendentes`}
-        actions={<Link to="/tarefas/nova"><Button className="gap-2"><Plus className="w-4 h-4" /> Nova Tarefa</Button></Link>}
+        actions={
+          <div className="flex gap-2">
+            <Button variant="outline" className="gap-2" onClick={() => setShowExport(true)}>
+              <Download className="w-4 h-4" /> Exportar
+            </Button>
+            <Link to="/tarefas/nova"><Button className="gap-2"><Plus className="w-4 h-4" /> Nova Tarefa</Button></Link>
+          </div>
+        }
       />
       <div className="flex flex-wrap gap-3 mb-4">
         <SearchInput value={search} onChange={v => { setSearch(v); setPage(1); }} placeholder="Buscar tarefa..." className="max-w-xs" />
@@ -154,6 +175,13 @@ export default function TarefasList() {
         </>
       )}
       <ConfirmModal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} isLoading={isDeleting} title="Excluir Tarefa" description={`Excluir "${deleteTarget?.titulo}"?`} confirmLabel="Excluir" />
+      <ExportModal
+        open={showExport}
+        onClose={() => setShowExport(false)}
+        data={filtered}
+        fields={EXPORT_FIELDS}
+        title="Tarefas"
+      />
     </div>
   );
 }

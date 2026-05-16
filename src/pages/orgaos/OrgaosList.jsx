@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus, Building2, Pencil, Trash2, Eye } from 'lucide-react';
+import { Plus, Building2, Pencil, Trash2, Eye, Download } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import DataTable from '@/components/ui/DataTable';
@@ -12,6 +12,25 @@ import EmptyState from '@/components/ui/EmptyState';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import ExportModal from '@/components/exportacao/ExportModal';
+
+const EXPORT_FIELDS = [
+  { key: 'nome', label: 'Nome' },
+  { key: 'cnpj', label: 'CNPJ' },
+  { key: 'esfera', label: 'Esfera' },
+  { key: 'poder', label: 'Poder' },
+  { key: 'secretaria', label: 'Secretaria' },
+  { key: 'cidade', label: 'Cidade' },
+  { key: 'estado', label: 'Estado' },
+  { key: 'cep', label: 'CEP' },
+  { key: 'endereco', label: 'Endereço' },
+  { key: 'telefone', label: 'Telefone' },
+  { key: 'email_institucional', label: 'E-mail' },
+  { key: 'site', label: 'Site' },
+  { key: 'relacionamento_status', label: 'Status' },
+  { key: 'orcamento_anual', label: 'Orçamento Anual' },
+  { key: 'notas', label: 'Notas' },
+];
 
 const PAGE_SIZE = 10;
 
@@ -25,6 +44,7 @@ export default function OrgaosList() {
   const [page, setPage] = useState(1);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showExport, setShowExport] = useState(false);
 
   const load = async () => {
     setIsLoading(true);
@@ -96,9 +116,14 @@ export default function OrgaosList() {
         title="Órgãos Públicos"
         subtitle={`${data.length} órgão(s) cadastrado(s)`}
         actions={
-          <Link to="/orgaos/novo">
-            <Button className="gap-2"><Plus className="w-4 h-4" /> Novo Órgão</Button>
-          </Link>
+          <div className="flex gap-2">
+            <Button variant="outline" className="gap-2" onClick={() => setShowExport(true)}>
+              <Download className="w-4 h-4" /> Exportar
+            </Button>
+            <Link to="/orgaos/novo">
+              <Button className="gap-2"><Plus className="w-4 h-4" /> Novo Órgão</Button>
+            </Link>
+          </div>
         }
       />
 
@@ -170,6 +195,13 @@ export default function OrgaosList() {
         title="Excluir Órgão"
         description={`Tem certeza que deseja excluir "${deleteTarget?.nome}"? Todos os dados relacionados serão perdidos.`}
         confirmLabel="Excluir"
+      />
+      <ExportModal
+        open={showExport}
+        onClose={() => setShowExport(false)}
+        data={filtered}
+        fields={EXPORT_FIELDS}
+        title="Órgãos Públicos"
       />
     </div>
   );

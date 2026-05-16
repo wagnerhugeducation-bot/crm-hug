@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus, Users, Pencil, Trash2, Eye } from 'lucide-react';
+import { Plus, Users, Pencil, Trash2, Eye, Download } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import DataTable from '@/components/ui/DataTable';
@@ -12,6 +12,20 @@ import EmptyState from '@/components/ui/EmptyState';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import ExportModal from '@/components/exportacao/ExportModal';
+
+const EXPORT_FIELDS = [
+  { key: 'nome', label: 'Nome' },
+  { key: 'cargo', label: 'Cargo' },
+  { key: 'departamento', label: 'Departamento' },
+  { key: 'telefone', label: 'Telefone' },
+  { key: 'whatsapp', label: 'WhatsApp' },
+  { key: 'email', label: 'E-mail' },
+  { key: 'influencia_compra', label: 'Influência' },
+  { key: 'linkedin', label: 'LinkedIn' },
+  { key: 'ativo', label: 'Ativo' },
+  { key: 'notas', label: 'Notas' },
+];
 
 const PAGE_SIZE = 10;
 
@@ -25,6 +39,7 @@ export default function ContatosList() {
   const [page, setPage] = useState(1);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showExport, setShowExport] = useState(false);
 
   const load = async () => {
     setIsLoading(true);
@@ -96,9 +111,14 @@ export default function ContatosList() {
         title="Contatos"
         subtitle={`${data.length} contato(s) cadastrado(s)`}
         actions={
-          <Link to="/contatos/novo">
-            <Button className="gap-2"><Plus className="w-4 h-4" /> Novo Contato</Button>
-          </Link>
+          <div className="flex gap-2">
+            <Button variant="outline" className="gap-2" onClick={() => setShowExport(true)}>
+              <Download className="w-4 h-4" /> Exportar
+            </Button>
+            <Link to="/contatos/novo">
+              <Button className="gap-2"><Plus className="w-4 h-4" /> Novo Contato</Button>
+            </Link>
+          </div>
         }
       />
 
@@ -153,6 +173,13 @@ export default function ContatosList() {
         title="Excluir Contato"
         description={`Tem certeza que deseja excluir "${deleteTarget?.nome}"?`}
         confirmLabel="Excluir"
+      />
+      <ExportModal
+        open={showExport}
+        onClose={() => setShowExport(false)}
+        data={filtered}
+        fields={EXPORT_FIELDS}
+        title="Contatos"
       />
     </div>
   );

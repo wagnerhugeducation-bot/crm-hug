@@ -1,6 +1,17 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus, FileText, Trash2, ExternalLink } from 'lucide-react';
+import { Plus, FileText, Trash2, ExternalLink, Download } from 'lucide-react';
+import ExportModal from '@/components/exportacao/ExportModal';
+
+const EXPORT_FIELDS = [
+  { key: 'nome', label: 'Nome' },
+  { key: 'tipo', label: 'Tipo' },
+  { key: 'descricao', label: 'Descrição' },
+  { key: 'versao', label: 'Versão' },
+  { key: 'validade', label: 'Validade' },
+  { key: 'tamanho_kb', label: 'Tamanho (KB)' },
+  { key: 'arquivo_url', label: 'URL do Arquivo' },
+];
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import DataTable from '@/components/ui/DataTable';
@@ -23,6 +34,7 @@ export default function DocumentosList() {
   const [page, setPage] = useState(1);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showExport, setShowExport] = useState(false);
 
   const load = async () => {
     setIsLoading(true);
@@ -75,7 +87,14 @@ export default function DocumentosList() {
       <PageHeader
         title="Documentos"
         subtitle={`${data.length} documento(s)`}
-        actions={<Link to="/documentos/novo"><Button className="gap-2"><Plus className="w-4 h-4" /> Novo Documento</Button></Link>}
+        actions={
+          <div className="flex gap-2">
+            <Button variant="outline" className="gap-2" onClick={() => setShowExport(true)}>
+              <Download className="w-4 h-4" /> Exportar
+            </Button>
+            <Link to="/documentos/novo"><Button className="gap-2"><Plus className="w-4 h-4" /> Novo Documento</Button></Link>
+          </div>
+        }
       />
       <div className="flex flex-wrap gap-3 mb-4">
         <SearchInput value={search} onChange={v => { setSearch(v); setPage(1); }} placeholder="Buscar documento..." className="max-w-xs" />
@@ -96,6 +115,13 @@ export default function DocumentosList() {
         </>
       )}
       <ConfirmModal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} isLoading={isDeleting} title="Excluir Documento" description={`Excluir "${deleteTarget?.nome}"?`} confirmLabel="Excluir" />
+      <ExportModal
+        open={showExport}
+        onClose={() => setShowExport(false)}
+        data={filtered}
+        fields={EXPORT_FIELDS}
+        title="Documentos"
+      />
     </div>
   );
 }
