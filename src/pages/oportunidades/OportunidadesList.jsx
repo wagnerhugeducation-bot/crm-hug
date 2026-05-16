@@ -5,9 +5,9 @@ import { useUsuariosMap } from '@/hooks/useUsuariosMap';
 import { Plus, Target, Pencil, Trash2, Eye, Download } from 'lucide-react';
 import ExportModal from '@/components/exportacao/ExportModal';
 
-const EXPORT_FIELDS = [
+const buildExportFields = (getLabel, orgaos) => [
   { key: 'nome', label: 'Nome' },
-  { key: 'orgao_id', label: 'Órgão (ID)' },
+  { key: 'orgao_id', label: 'Órgão', transform: v => orgaos[v] || v || '' },
   { key: 'status', label: 'Status' },
   { key: 'etapa_pipeline', label: 'Etapa Pipeline' },
   { key: 'tipo_licitacao', label: 'Modalidade' },
@@ -17,7 +17,7 @@ const EXPORT_FIELDS = [
   { key: 'data_abertura', label: 'Data Abertura' },
   { key: 'data_fechamento', label: 'Previsão Fechamento' },
   { key: 'data_entrega_proposta', label: 'Prazo Proposta' },
-  { key: 'responsavel_id', label: 'Responsável' },
+  { key: 'responsavel_id', label: 'Responsável', transform: v => getLabel(v) },
   { key: 'concorrentes', label: 'Concorrentes' },
   { key: 'notas', label: 'Observações' },
 ];
@@ -255,7 +255,7 @@ export default function OportunidadesList() {
         open={showExport}
         onClose={() => setShowExport(false)}
         data={filtered}
-        fields={EXPORT_FIELDS}
+        fields={buildExportFields(getLabel, orgaos)}
         title="Oportunidades"
       />
     </div>

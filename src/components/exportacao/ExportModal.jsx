@@ -29,8 +29,9 @@ export default function ExportModal({ open, onClose, data = [], fields = [], tit
 
   const activeFields = fields.filter(f => selected.includes(f.key));
 
-  const cellValue = (row, key) => {
-    const v = row[key];
+  const cellValue = (row, field) => {
+    const v = row[field.key];
+    if (field.transform) return field.transform(v, row) ?? '';
     if (v == null) return '';
     if (typeof v === 'boolean') return v ? 'Sim' : 'Não';
     if (typeof v === 'object') return JSON.stringify(v);
@@ -42,7 +43,7 @@ export default function ExportModal({ open, onClose, data = [], fields = [], tit
     setBusy(true);
     try {
       const rows = data.map(row =>
-        Object.fromEntries(activeFields.map(f => [f.label, cellValue(row, f.key)]))
+        Object.fromEntries(activeFields.map(f => [f.label, cellValue(row, f)]))
       );
       const ws = XLSX.utils.json_to_sheet(rows);
       const wb = XLSX.utils.book_new();
@@ -100,7 +101,7 @@ export default function ExportModal({ open, onClose, data = [], fields = [], tit
         }
         doc.setTextColor(40, 40, 40);
         activeFields.forEach((f, i) => {
-          const txt = cellValue(row, f.key);
+          const txt = cellValue(row, f);
           doc.text(txt, margin + i * colW + 1, y + 4.5, { maxWidth: colW - 2 });
         });
         // row border

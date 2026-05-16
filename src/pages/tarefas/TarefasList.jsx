@@ -7,15 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import ExportModal from '@/components/exportacao/ExportModal';
 
-const EXPORT_FIELDS = [
+const buildExportFields = (getLabel) => [
   { key: 'titulo', label: 'Título' },
   { key: 'tipo', label: 'Tipo' },
   { key: 'descricao', label: 'Descrição' },
   { key: 'status', label: 'Status' },
   { key: 'prioridade', label: 'Prioridade' },
   { key: 'data_vencimento', label: 'Vencimento' },
-  { key: 'responsavel_id', label: 'Responsável' },
-  { key: 'created_by', label: 'Criador' },
+  { key: 'responsavel_id', label: 'Responsável', transform: v => getLabel(v) },
+  { key: 'created_by', label: 'Criador', transform: v => getLabel(v) },
   { key: 'concluida_em', label: 'Concluída em' },
 ];
 import { Link } from 'react-router-dom';
@@ -206,7 +206,7 @@ export default function TarefasList() {
         open={showExport}
         onClose={() => setShowExport(false)}
         data={filtered}
-        fields={EXPORT_FIELDS}
+        fields={buildExportFields(getLabel)}
         title="Tarefas"
       />
     </div>
