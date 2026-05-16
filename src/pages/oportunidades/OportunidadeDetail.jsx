@@ -8,6 +8,7 @@ import PageHeader from '@/components/ui/PageHeader';
 import StatusBadge from '@/components/ui/StatusBadge';
 import DataTable from '@/components/ui/DataTable';
 import LinhaDoTempo from '@/components/oportunidades/LinhaDoTempo';
+import { useUsuariosMap } from '@/hooks/useUsuariosMap';
 
 function InfoRow({ label, value }) {
   if (!value) return null;
@@ -54,6 +55,7 @@ function BANTScore({ bant }) {
 
 export default function OportunidadeDetail() {
   const { id } = useParams();
+  const { getLabel } = useUsuariosMap();
   const [op, setOp] = useState(null);
   const [orgao, setOrgao] = useState(null);
   const [tarefas, setTarefas] = useState([]);
@@ -114,6 +116,8 @@ export default function OportunidadeDetail() {
             <InfoRow label="Data Abertura" value={op.data_abertura} />
             <InfoRow label="Prazo Proposta" value={op.data_entrega_proposta} />
             <InfoRow label="Concorrentes" value={op.concorrentes} />
+            <InfoRow label="Responsável" value={getLabel(op.responsavel_id)} />
+            <InfoRow label="Criado por" value={getLabel(op.created_by)} />
             {op.notas && <InfoRow label="Observações" value={op.notas} />}
           </div>
 

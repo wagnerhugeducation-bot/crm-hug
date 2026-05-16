@@ -4,29 +4,50 @@ import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import PageHeader from '@/components/ui/PageHeader';
 import { toast } from 'sonner';
-import { Save, User, Shield, Users } from 'lucide-react';
+import { Save, User, Shield, Users, KeyRound, AtSign } from 'lucide-react';
 import GerenciamentoUsuarios from '@/components/usuarios/GerenciamentoUsuarios';
 
 export default function Configuracoes() {
   const { user, isAdmin } = useAuth();
-  const [form, setForm] = useState({ full_name: '', role: '' });
-  const [isLoading, setIsLoading] = useState(false);
+  const [nickname, setNickname] = useState('');
+  const [isSavingNickname, setIsSavingNickname] = useState(false);
+
+  const [senhaAtual, setSenhaAtual] = useState('');
+  const [senhaNova, setSenhaNova] = useState('');
+  const [senhaConfirm, setSenhaConfirm] = useState('');
+  const [isSavingSenha, setIsSavingSenha] = useState(false);
+
+  const isEmailProvider = user?.provider === 'email' || !user?.provider;
 
   useEffect(() => {
     if (user) {
-      setForm({ full_name: user.full_name || '', role: user.role || 'Comercial' });
+      setNickname(user.nickname || '');
     }
   }, [user]);
 
-  const handleSubmit = async (e) => {
+  const handleSaveNickname = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    await base44.auth.updateMe({ role: form.role });
-    toast.success('Perfil atualizado!');
-    setIsLoading(false);
+    if (!nickname.trim()) { toast.error('O nickname não pode ser vazio.'); return; }
+    setIsSavingNickname(true);
+    await base44.auth.updateMe({ nickname: nickname.trim() });
+    toast.success('Nickname atualizado!');
+    setIsSavingNickname(false);
+  };
+
+  const handleSaveSenha = async (e) => {
+    e.preventDefault();
+    if (!senhaAtual || !senhaNova || !senhaConfirm) { toast.error('Preencha todos os campos.'); return; }
+    if (senhaNova !== senhaConfirm) { toast.error('A nova senha e a confirmação não coincidem.'); return; }
+    if (senhaNova.length < 6) { toast.error('A nova senha deve ter ao menos 6 caracteres.'); return; }
+    setIsSavingSenha(true);
+    await base44.auth.updateMe({ current_password: senhaAtual, new_password: senhaNova });
+    toast.success('Senha alterada com sucesso!');
+    setSenhaAtual('');
+    setSenhaNova('');
+    setSenhaConfirm('');
+    setIsSavingSenha(false);
   };
 
   return (
@@ -39,24 +60,90 @@ export default function Configuracoes() {
           <User className="w-4 h-4 text-primary" />
           <h2 className="text-sm font-semibold">Meu Perfil</h2>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
+        <div className="space-y-3 max-w-md mb-5">
           <div>
             <Label>Nome Completo</Label>
-            <Input value={form.full_name} disabled className="mt-1 bg-muted/50" />
+            <Input value={user?.full_name || ''} disabled className="mt-1 bg-muted/50" />
             <p className="text-xs text-muted-foreground mt-1">O nome é gerenciado pelo sistema de autenticação.</p>
           </div>
           <div>
             <Label>E-mail</Label>
             <Input value={user?.email || ''} disabled className="mt-1 bg-muted/50" />
           </div>
+        </div>
+
+        {/* Nickname */}
+        <form onSubmit={handleSaveNickname} className="max-w-md space-y-3 border-t border-border pt-5">
+          <div className="flex items-center gap-2 mb-1">
+            <AtSign className="w-4 h-4 text-primary" />
+            <h3 className="text-sm font-semibold">Nickname</h3>
+          </div>
+          <div>
+            <Label>Nickname (nome de exibição)</Label>
+            <Input
+              value={nickname}
+              onChange={e => setNickname(e.target.value)}
+              placeholder="ex: joaosilva"
+              className="mt-1"
+            />
+            <p className="text-xs text-muted-foreground mt-1">Será exibido no lugar do e-mail em listas e relatórios.</p>
+          </div>
           <div className="flex justify-end">
-            <Button type="submit" disabled={isLoading} className="gap-2">
+            <Button type="submit" disabled={isSavingNickname} className="gap-2">
               <Save className="w-4 h-4" />
-              {isLoading ? 'Salvando...' : 'Salvar'}
+              {isSavingNickname ? 'Salvando...' : 'Salvar Nickname'}
             </Button>
           </div>
         </form>
       </div>
+
+      {/* Alterar Senha — somente para usuários com login por e-mail */}
+      {isEmailProvider && (
+        <div className="bg-card rounded-xl border border-border p-6">
+          <div className="flex items-center gap-2 mb-5">
+            <KeyRound className="w-4 h-4 text-primary" />
+            <h2 className="text-sm font-semibold">Alterar Senha</h2>
+          </div>
+          <form onSubmit={handleSaveSenha} className="space-y-4 max-w-md">
+            <div>
+              <Label>Senha Atual</Label>
+              <Input
+                type="password"
+                value={senhaAtual}
+                onChange={e => setSenhaAtual(e.target.value)}
+                placeholder="••••••••"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>Nova Senha</Label>
+              <Input
+                type="password"
+                value={senhaNova}
+                onChange={e => setSenhaNova(e.target.value)}
+                placeholder="••••••••"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>Confirmar Nova Senha</Label>
+              <Input
+                type="password"
+                value={senhaConfirm}
+                onChange={e => setSenhaConfirm(e.target.value)}
+                placeholder="••••••••"
+                className="mt-1"
+              />
+            </div>
+            <div className="flex justify-end">
+              <Button type="submit" disabled={isSavingSenha} className="gap-2">
+                <Save className="w-4 h-4" />
+                {isSavingSenha ? 'Salvando...' : 'Alterar Senha'}
+              </Button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* Níveis de Acesso */}
       <div className="bg-card rounded-xl border border-border p-6">
