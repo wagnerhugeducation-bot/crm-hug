@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { useUsuariosMap } from '@/hooks/useUsuariosMap';
-import { Plus, CheckSquare, Pencil, Trash2, CheckCircle2, Download } from 'lucide-react';
+import { Plus, CheckSquare, Pencil, Trash2, CheckCircle2, Download, Calendar } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import ExportModal from '@/components/exportacao/ExportModal';
 
 const EXPORT_FIELDS = [
@@ -40,6 +42,8 @@ export default function TarefasList() {
   const [filterPrioridade, setFilterPrioridade] = useState('all');
   const [filterCriador, setFilterCriador] = useState('all');
   const [filterResponsavel, setFilterResponsavel] = useState('all');
+  const [filterDataDe, setFilterDataDe] = useState('');
+  const [filterDataAte, setFilterDataAte] = useState('');
   const [page, setPage] = useState(1);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -63,7 +67,10 @@ export default function TarefasList() {
     const matchPrioridade = filterPrioridade === 'all' || d.prioridade === filterPrioridade;
     const matchCriador = filterCriador === 'all' || d.created_by === filterCriador;
     const matchResponsavel = filterResponsavel === 'all' || d.responsavel_id === filterResponsavel;
-    return matchSearch && matchStatus && matchPrioridade && matchCriador && matchResponsavel;
+    const venc = d.data_vencimento ? new Date(d.data_vencimento) : null;
+    const matchDe = !filterDataDe || (venc && venc >= new Date(filterDataDe + 'T00:00:00'));
+    const matchAte = !filterDataAte || (venc && venc <= new Date(filterDataAte + 'T23:59:59'));
+    return matchSearch && matchStatus && matchPrioridade && matchCriador && matchResponsavel && matchDe && matchAte;
   });
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -145,6 +152,24 @@ export default function TarefasList() {
             {['Baixa', 'Média', 'Alta', 'Urgente'].map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
           </SelectContent>
         </Select>
+        <div className="flex items-center gap-2">
+          <Calendar className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+          <Input
+            type="date"
+            value={filterDataDe}
+            onChange={e => { setFilterDataDe(e.target.value); setPage(1); }}
+            className="w-36 h-9"
+            title="Vencimento a partir de"
+          />
+          <span className="text-muted-foreground text-sm">até</span>
+          <Input
+            type="date"
+            value={filterDataAte}
+            onChange={e => { setFilterDataAte(e.target.value); setPage(1); }}
+            className="w-36 h-9"
+            title="Vencimento até"
+          />
+        </div>
         {isAdmin() && usuarios.length > 0 && (
           <>
             <Select value={filterCriador} onValueChange={v => { setFilterCriador(v); setPage(1); }}>
