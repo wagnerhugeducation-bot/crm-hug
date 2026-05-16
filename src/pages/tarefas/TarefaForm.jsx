@@ -15,7 +15,7 @@ import { Link } from 'react-router-dom';
 
 const defaultForm = {
   oportunidade_id: '', orgao_id: '', titulo: '', descricao: '',
-  tipo: '', data_vencimento: '', status: 'Pendente', prioridade: 'Média'
+  tipo: '', data_vencimento: '', status: 'Pendente', prioridade: 'Média', concluida_em: ''
 };
 
 export default function TarefaForm() {
@@ -49,7 +49,15 @@ export default function TarefaForm() {
     }
   }, [id]);
 
-  const set = (field, value) => setForm(f => ({ ...f, [field]: value }));
+  const set = (field, value) => {
+    if (field === 'status' && value === 'Concluída') {
+      const hoje = new Date();
+      const concluida_em = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-${String(hoje.getDate()).padStart(2,'0')}T${String(hoje.getHours()).padStart(2,'0')}:${String(hoje.getMinutes()).padStart(2,'0')}`;
+      setForm(f => ({ ...f, [field]: value, concluida_em: f.concluida_em || concluida_em }));
+    } else {
+      setForm(f => ({ ...f, [field]: value }));
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -117,6 +125,12 @@ export default function TarefaForm() {
                 <SelectContent>{['Baixa', 'Média', 'Alta', 'Urgente'].map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent>
               </Select>
             </div>
+            {form.status === 'Concluída' && (
+              <div className="sm:col-span-2">
+                <Label>Data de Conclusão</Label>
+                <Input type="datetime-local" value={form.concluida_em} onChange={e => set('concluida_em', e.target.value)} className="mt-1" />
+              </div>
+            )}
           </div>
           <div>
             <Label>Descrição</Label>

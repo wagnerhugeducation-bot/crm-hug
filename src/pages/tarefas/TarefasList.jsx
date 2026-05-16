@@ -70,7 +70,9 @@ export default function TarefasList() {
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleConcluir = async (tarefa) => {
-    await base44.entities.Tarefa.update(tarefa.id, { status: 'Concluída', concluida_em: new Date().toISOString() });
+    const hoje = new Date();
+    const concluida_em = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-${String(hoje.getDate()).padStart(2,'0')}T${String(hoje.getHours()).padStart(2,'0')}:${String(hoje.getMinutes()).padStart(2,'0')}`;
+    await base44.entities.Tarefa.update(tarefa.id, { status: 'Concluída', concluida_em });
     toast.success('Tarefa concluída!');
     load();
   };
