@@ -24,7 +24,7 @@ export function useUsuariosMap() {
     if (!email) return '—';
     const u = usuariosMap[email];
     if (!u) return email;
-    return u.nickname ? `@${u.nickname}` : (u.full_name || email);
+    return u.nickname || u.full_name || email;
   };
 
   return { usuariosMap, usuarios, isLoading, getLabel };

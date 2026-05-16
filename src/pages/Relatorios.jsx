@@ -146,7 +146,7 @@ export default function Relatorios() {
 
   const totalValor = opsFiltradas.reduce((s, o) => s + (o.valor_estimado || 0), 0);
 
-  const usuarioLabel = (u) => u.nickname ? `@${u.nickname}` : (u.full_name || u.email);
+  const usuarioLabel = (u) => u.nickname || u.full_name || u.email;
 
   if (isLoading) {
     return (

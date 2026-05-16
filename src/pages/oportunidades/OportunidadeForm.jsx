@@ -89,7 +89,7 @@ export default function OportunidadeForm() {
       valor_novo: valorNovo != null ? String(valorNovo) : null,
       descricao,
       usuario_email: user?.email || null,
-      usuario_nome: user?.full_name || user?.email || null,
+      usuario_nome: getLabel(user?.email) || user?.email || null,
     });
   };
 

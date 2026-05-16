@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/ui/PageHeader';
 import StatusBadge from '@/components/ui/StatusBadge';
 import DataTable from '@/components/ui/DataTable';
+import { useUsuariosMap } from '@/hooks/useUsuariosMap';
 
 function InfoRow({ label, value }) {
   if (!value) return null;
@@ -19,6 +20,7 @@ function InfoRow({ label, value }) {
 
 export default function OrgaoDetail() {
   const { id } = useParams();
+  const { getLabel } = useUsuariosMap();
   const [orgao, setOrgao] = useState(null);
   const [contatos, setContatos] = useState([]);
   const [oportunidades, setOportunidades] = useState([]);
@@ -66,6 +68,7 @@ export default function OrgaoDetail() {
           <InfoRow label="Esfera" value={orgao.esfera} />
           <InfoRow label="Poder" value={orgao.poder} />
           <InfoRow label="Cidade / Estado" value={orgao.cidade ? `${orgao.cidade} / ${orgao.estado}` : null} />
+          <InfoRow label="Responsável Interno" value={orgao.responsavel_id ? getLabel(orgao.responsavel_id) : null} />
           <InfoRow label="Endereço" value={orgao.endereco} />
           {orgao.telefone && (
             <a href={`tel:${orgao.telefone}`} className="flex items-center gap-2 text-sm text-primary hover:underline">
