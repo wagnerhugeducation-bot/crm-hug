@@ -17,6 +17,12 @@ const PRIORIDADE_DOT = {
 };
 
 export default function TarefasCalendario({ tarefas, isAdmin, usuarios, currentUserEmail, isLoading, filtroExterno }) {
+  const getLabel = (email) => {
+    if (!email) return '—';
+    const u = usuarios?.find(u => u.email === email);
+    if (!u) return email;
+    return u.nickname || u.full_name || u.email;
+  };
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
   const [filtroUsuario, setFiltroUsuario] = useState('__me__'); // '__me__' | '__all__' | email
@@ -193,7 +199,7 @@ export default function TarefasCalendario({ tarefas, isAdmin, usuarios, currentU
                       <Link key={t.id} to={`/tarefas/${t.id}/editar`} className="flex items-center justify-between bg-muted/30 hover:bg-muted/60 rounded-lg px-3 py-2 transition-colors">
                         <div className="min-w-0 flex-1 mr-3">
                           <p className="text-sm font-medium text-foreground truncate">{t.titulo}</p>
-                          <p className="text-xs text-muted-foreground">{t.tipo || '—'}</p>
+                          <p className="text-xs text-muted-foreground">{t.tipo || '—'} · {getLabel(t.responsavel_id)}</p>
                         </div>
                         <StatusBadge value={t.prioridade} />
                       </Link>
