@@ -12,7 +12,18 @@ export default function AudioRecorder({ onTranscription }) {
 
   const startRecording = async () => {
     chunksRef.current = [];
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (err) {
+      if (err.name === 'NotAllowedError') {
+        toast.error('Permissão para microfone negada. Habilite o acesso ao microfone nas configurações do navegador.');
+      } else {
+        toast.error('Não foi possível acessar o microfone.');
+      }
+      setStatus('idle');
+      return;
+    }
     const mediaRecorder = new MediaRecorder(stream);
     mediaRecorderRef.current = mediaRecorder;
 
