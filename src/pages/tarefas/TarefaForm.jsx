@@ -12,9 +12,10 @@ import PageHeader from '@/components/ui/PageHeader';
 import { toast } from 'sonner';
 import { ArrowLeft, Save } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import AudioRecorder from '@/components/tarefas/AudioRecorder';
 
 const defaultForm = {
-  oportunidade_id: '', orgao_id: '', titulo: '', descricao: '',
+  oportunidade_id: '', orgao_id: '', titulo: '', descricao: '', resultado: '',
   tipo: '', data_vencimento: '', status: 'Pendente', prioridade: 'Média', concluida_em: ''
 };
 
@@ -132,6 +133,21 @@ export default function TarefaForm() {
               </div>
             )}
           </div>
+          {form.status === 'Concluída' && (
+            <div className="border border-green-200 bg-green-50/50 rounded-lg p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-green-800 font-semibold">Resultado da Tarefa</Label>
+                <AudioRecorder onTranscription={text => set('resultado', form.resultado ? form.resultado + ' ' + text : text)} />
+              </div>
+              <Textarea
+                value={form.resultado}
+                onChange={e => set('resultado', e.target.value)}
+                placeholder="Descreva o resultado desta tarefa... ou use o microfone para gravar."
+                className="resize-none bg-white"
+                rows={4}
+              />
+            </div>
+          )}
           <div>
             <Label>Descrição</Label>
             <Textarea value={form.descricao} onChange={e => set('descricao', e.target.value)} className="mt-1 resize-none" rows={3} />

@@ -18,6 +18,10 @@
       "type": "string",
       "description": "Descri\u00e7\u00e3o detalhada"
     },
+    "resultado": {
+      "type": "string",
+      "description": "Resultado da tarefa ao ser conclu\u00edda"
+    },
     "tipo": {
       "type": "string",
       "enum": [
