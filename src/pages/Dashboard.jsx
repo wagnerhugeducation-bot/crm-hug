@@ -7,6 +7,7 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import TarefasCalendario from '@/components/dashboard/TarefasCalendario';
+import KanbanBANT from '@/components/dashboard/KanbanBANT';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function Dashboard() {
@@ -17,6 +18,7 @@ export default function Dashboard() {
   const [allContatos, setAllContatos] = useState([]);
   const [tarefas, setTarefas] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
+  const [bantScores, setBantScores] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filtroUsuario, setFiltroUsuario] = useState('__me__');
   const [loaded, setLoaded] = useState(false);
@@ -25,18 +27,20 @@ export default function Dashboard() {
     if (loaded) return;
     setLoaded(true);
     const load = async () => {
-      const [orgaos, contatos, oportunidades, todasTarefas, listaUsuarios] = await Promise.all([
+      const [orgaos, contatos, oportunidades, todasTarefas, listaUsuarios, scores] = await Promise.all([
         base44.entities.OrgaoPublico.list(),
         base44.entities.Contato.list(),
         base44.entities.Oportunidade.list(),
         base44.entities.Tarefa.list(),
         isAdmin ? base44.entities.User.list() : Promise.resolve([]),
+        base44.entities.ScoreBANT.list(),
       ]);
       setAllOrgaos(orgaos);
       setAllContatos(contatos);
       setAllOportunidades(oportunidades);
       setTarefas(todasTarefas);
       setUsuarios(listaUsuarios);
+      setBantScores(scores);
       setIsLoading(false);
     };
     load();
@@ -133,6 +137,9 @@ export default function Dashboard() {
           icon={CheckSquare} iconColor="text-amber-600" iconBg="bg-amber-50"
         />
       </div>
+
+      {/* Kanban BANT */}
+      <KanbanBANT oportunidades={oportunidades} bantScores={bantScores} isLoading={isLoading} />
 
       {/* Main content */}
       <div className="grid lg:grid-cols-2 gap-6">
