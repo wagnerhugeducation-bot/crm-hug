@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import PageHeader from '@/components/ui/PageHeader';
 import QuadroEducacional from '@/components/orgaos/QuadroEducacional';
 import { toast } from 'sonner';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Sparkles, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
@@ -43,6 +43,57 @@ export default function OrgaoForm() {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(isEdit);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+
+  const handleGerarIA = async () => {
+    if (!form.cidade && !form.nome) {
+      toast.error('Preencha pelo menos o nome do órgão ou a cidade para gerar as observações.');
+      return;
+    }
+    setIsGeneratingAI(true);
+    const cidadeRef = form.cidade ? `${form.cidade}${form.estado ? ' - ' + form.estado : ''}` : form.nome;
+    const prompt = `Você é um especialista em gestão pública municipal brasileira. Gere um relatório detalhado e atualizado sobre o município de "${cidadeRef}" para uso em um CRM de vendas para o setor público educacional.
+
+Inclua obrigatoriamente as seguintes seções, de forma clara e organizada:
+
+1. **GESTÃO ATUAL**
+   - Nome do prefeito(a) atual e mandato
+   - Partido político do prefeito(a)
+   - Vice-prefeito(a)
+
+2. **INFLUÊNCIA POLÍTICA**
+   - Deputado(a) estadual/federal com maior influência na cidade
+   - Partido e breve contexto de sua atuação na região
+
+3. **INDICADORES MUNICIPAIS**
+   - População estimada
+   - PIB per capita ou IDH
+   - Principais atividades econômicas
+
+4. **SECRETARIA DE EDUCAÇÃO**
+   - Nome do(a) Secretário(a) Municipal de Educação
+   - Principais projetos e iniciativas em andamento na educação
+
+5. **INDICADORES EDUCACIONAIS**
+   - IDEB mais recente (anos iniciais, anos finais e ensino médio, se disponível)
+   - Número aproximado de escolas municipais
+   - Taxa de alfabetização / aprovação
+   - Programas federais ou estaduais de educação ativos no município
+
+6. **RESUMO DA ADMINISTRAÇÃO**
+   - Principais prioridades e projetos da atual gestão
+   - Pontos de atenção para abordagem comercial
+
+Formato: use texto corrido com marcadores, seja objetivo e direto. Escreva em português do Brasil.`;
+
+    const resultado = await base44.integrations.Core.InvokeLLM({
+      prompt,
+      add_context_from_internet: true,
+    });
+    set('notas', resultado);
+    setIsGeneratingAI(false);
+    toast.success('Observações geradas com sucesso!');
+  };
 
   useEffect(() => {
     if (isEdit) {
@@ -246,13 +297,28 @@ export default function OrgaoForm() {
               </Select>
             </div>
             <div className="sm:col-span-2">
-              <Label>Observações</Label>
+              <div className="flex items-center justify-between mb-1">
+                <Label>Observações</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGerarIA}
+                  disabled={isGeneratingAI}
+                  className="gap-1.5 text-xs h-7 px-2.5 border-primary/40 text-primary hover:bg-primary/5"
+                >
+                  {isGeneratingAI
+                    ? <><Loader2 className="w-3 h-3 animate-spin" /> Gerando...</>
+                    : <><Sparkles className="w-3 h-3" /> Geração por IA</>
+                  }
+                </Button>
+              </div>
               <Textarea
                 value={form.notas}
                 onChange={e => set('notas', e.target.value)}
                 placeholder="Anotações sobre o órgão..."
-                className="mt-1 resize-none"
-                rows={3}
+                className="resize-none"
+                rows={isGeneratingAI ? 6 : 5}
               />
             </div>
           </div>
