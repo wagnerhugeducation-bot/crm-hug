@@ -85,6 +85,14 @@ function _resolver(responsavelEmail, map) {
     };
   }
 
-  // Gestor, Administrador, Visualização — sem hierarquia abaixo
+  // Gestor → responsavel_gestor_id é o próprio email (RLS permite acesso)
+  if (responsavel.role === 'Gestor') {
+    return {
+      responsavel_gestor_id: responsavel.email || responsavelEmail,
+      responsavel_comercial_id: null,
+    };
+  }
+
+  // Administrador, Visualização — sem hierarquia
   return { responsavel_gestor_id: null, responsavel_comercial_id: null };
 }
