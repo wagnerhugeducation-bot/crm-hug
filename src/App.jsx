@@ -35,6 +35,8 @@ import DocumentosList from '@/pages/documentos/DocumentosList';
 import DocumentoForm from '@/pages/documentos/DocumentoForm';
 import Configuracoes from '@/pages/Configuracoes';
 import Relatorios from '@/pages/Relatorios';
+import UsuariosList from '@/pages/usuarios/UsuariosList';
+import UsuarioForm from '@/pages/usuarios/UsuarioForm';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, userProfile, navigateToLogin, user } = useAuth();
@@ -113,6 +115,10 @@ const AuthenticatedApp = () => {
         <Route path="/documentos" element={<DocumentosList />} />
         <Route path="/documentos/novo" element={<DocumentoForm />} />
         <Route path="/documentos/:id/editar" element={<DocumentoForm />} />
+
+        <Route path="/usuarios" element={<UsuariosList />} />
+        <Route path="/usuarios/novo" element={<UsuarioForm />} />
+        <Route path="/usuarios/:id/editar" element={<UsuarioForm />} />
 
         <Route path="/configuracoes" element={<Configuracoes />} />
         <Route path="/relatorios" element={<Relatorios />} />
