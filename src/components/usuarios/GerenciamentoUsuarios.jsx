@@ -10,7 +10,8 @@ import SearchInput from '@/components/ui/SearchInput';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { toast } from 'sonner';
-import { CheckCircle, ShieldOff, ShieldCheck, Trash2, Plus, X, Pencil, Check } from 'lucide-react';
+import { ShieldOff, ShieldCheck, Trash2, Plus, X, Pencil, Check } from 'lucide-react';
+import UsuarioEditModal from './UsuarioEditModal';
 
 const ROLES = ['Administrador', 'Gestor', 'Comercial', 'Assistente', 'Visualização'];
 
@@ -27,6 +28,7 @@ export default function GerenciamentoUsuarios() {
   const [inviteRole, setInviteRole] = useState('Comercial');
   const [isInviting, setIsInviting] = useState(false);
   const [editingNickname, setEditingNickname] = useState(null); // { id, value }
+  const [editingUser, setEditingUser] = useState(null);
 
 
   const load = async () => {
@@ -207,6 +209,10 @@ export default function GerenciamentoUsuarios() {
                 <ShieldCheck className="w-3.5 h-3.5" /> Liberar
               </Button>
             )}
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground"
+              onClick={() => setEditingUser(row)}>
+              <Pencil className="w-3.5 h-3.5" />
+            </Button>
             {!isSelf && (
               <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive"
                 onClick={() => setDeleteTarget(row)}>
@@ -283,6 +289,12 @@ export default function GerenciamentoUsuarios() {
         data={filtered}
         isLoading={isLoading}
         emptyMessage="Nenhum usuário encontrado."
+      />
+
+      <UsuarioEditModal
+        usuario={editingUser}
+        onClose={() => setEditingUser(null)}
+        onSaved={() => { setEditingUser(null); load(); }}
       />
 
       <ConfirmModal
