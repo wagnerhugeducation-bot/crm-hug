@@ -40,6 +40,14 @@
       ],
       "default": "email",
       "description": "Provedor de autentica\u00e7\u00e3o"
+    },
+    "gestor_id": {
+      "type": "string",
+      "description": "Email do gestor respons\u00e1vel (preenchido para usu\u00e1rios com role Comercial)"
+    },
+    "comercial_id": {
+      "type": "string",
+      "description": "Email do comercial supervisor (preenchido para usu\u00e1rios com role Assistente)"
     }
   },
   "required": []

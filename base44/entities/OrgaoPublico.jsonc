@@ -85,6 +85,14 @@
       "type": "string",
       "description": "ID do respons\u00e1vel interno"
     },
+    "responsavel_gestor_id": {
+      "type": "string",
+      "description": "Email do gestor do respons\u00e1vel (hierarquia)"
+    },
+    "responsavel_comercial_id": {
+      "type": "string",
+      "description": "Email do comercial supervisor do respons\u00e1vel (hierarquia)"
+    },
     "notas": {
       "type": "string",
       "description": "Observa\u00e7\u00f5es gerais"
@@ -205,5 +213,93 @@
   "required": [
     "nome",
     "esfera"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "Administrador"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "Gestor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "Comercial"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "Assistente"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "Administrador"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "Gestor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "Comercial"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "Assistente"
+          }
+        },
+        {
+          "created_by": "{{user.email}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "Administrador"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "Gestor"
+          }
+        },
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "data.responsavel_id": "{{user.email}}"
+        },
+        {
+          "data.responsavel_gestor_id": "{{user.email}}"
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "Administrador"
+          }
+        },
+        {
+          "created_by": "{{user.email}}"
+        }
+      ]
+    }
+  }
 }
