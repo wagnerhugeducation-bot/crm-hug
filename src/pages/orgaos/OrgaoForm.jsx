@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { useUsuariosMap } from '@/hooks/useUsuariosMap';
 import { useHierarquia } from '@/hooks/useHierarquia';
+import { useSubordinados } from '@/hooks/useSubordinados';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -44,6 +45,7 @@ export default function OrgaoForm() {
   const { user, isAdmin } = useAuth();
   const { usuarios, getLabel } = useUsuariosMap();
   const { resolverHierarquiaAsync } = useHierarquia();
+  const { subordinados, getLabel: getSubLabel, podeAtribuir } = useSubordinados();
   const isEdit = !!id && id !== 'novo';
   const [form, setForm] = useState(defaultForm);
   const [errors, setErrors] = useState({});
@@ -139,7 +141,7 @@ Formato: use texto corrido com marcadores, seja objetivo e direto. Escreva em po
     }
     setIsLoading(true);
     try {
-      const responsavelFinal = isAdmin() ? (form.responsavel_id || user?.email) : user?.email;
+      const responsavelFinal = podeAtribuir ? (form.responsavel_id || user?.email) : user?.email;
       const hierarquia = await resolverHierarquiaAsync(responsavelFinal);
       const payload = {
         ...form,
@@ -344,7 +346,7 @@ Formato: use texto corrido com marcadores, seja objetivo e direto. Escreva em po
         <QuadroEducacional form={form} set={set} />
 
         {/* Atribuição */}
-        {isAdmin() && usuarios.length > 0 && (
+        {podeAtribuir && subordinados.length > 0 && (
           <div className="bg-card rounded-xl border border-border p-6 space-y-4">
             <h3 className="text-sm font-semibold text-foreground pb-2 border-b border-border">Atribuição</h3>
             <div>
@@ -352,7 +354,7 @@ Formato: use texto corrido com marcadores, seja objetivo e direto. Escreva em po
               <Select value={form.responsavel_id || ''} onValueChange={v => set('responsavel_id', v)}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione o responsável" /></SelectTrigger>
                 <SelectContent>
-                  {usuarios.map(u => <SelectItem key={u.email} value={u.email}>{getLabel(u.email)}</SelectItem>)}
+                  {subordinados.map(u => <SelectItem key={u.email} value={u.email}>{getSubLabel(u.email)}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

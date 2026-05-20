@@ -137,6 +137,10 @@ export const AuthProvider = ({ children }) => {
 
   const isAdmin = () =>
     userProfile?.role === 'Administrador' || user?.role === 'admin';
+  const isGestor = () =>
+    userProfile?.role === 'Gestor';
+  const isAdminOrGestor = () =>
+    isAdmin() || isGestor();
   const isAtivo = () => userProfile?.status_acesso === 'Ativo';
 
   const logout = (shouldRedirect = true) => {
@@ -170,6 +174,8 @@ export const AuthProvider = ({ children }) => {
       checkAppState,
       refreshUserProfile,
       isAdmin,
+      isGestor,
+      isAdminOrGestor,
       isAtivo,
     }}>
       {children}
