@@ -3,11 +3,11 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 
 /**
- * Retorna a lista de usuários que o usuário atual pode atribuir como responsável:
+ * Retorna a lista de usuários que o usuário atual pode atribuir como responsável.
+ * Usa backend function para contornar a restrição de RLS do User.list().
  * - Admin: todos os usuários
- * - Gestor: ele mesmo + seus subordinados diretos (Comerciais com gestor_id = gestor.email)
- *           + Assistentes cujo comercial supervisor é subordinado do gestor
- * - Outros: lista vazia (não podem atribuir)
+ * - Gestor: ele mesmo + Comerciais subordinados + Assistentes desses Comerciais
+ * - Outros: lista vazia
  */
 export function useSubordinados() {
   const { user, userProfile, isAdmin, isGestor } = useAuth();
@@ -15,45 +15,19 @@ export function useSubordinados() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
+    if (!user || (!isAdmin() && !isGestor())) {
+      setSubordinados([]);
       setIsLoading(false);
       return;
     }
 
-    base44.entities.User.list()
-      .then(todos => {
-        if (isAdmin()) {
-          // Admin vê todos
-          setSubordinados(todos);
-        } else if (isGestor()) {
-          const gestorEmail = user.email;
-
-          // Comerciais cujo gestor_id é este gestor
-          const comerciaisDoGestor = todos.filter(
-            u => u.role === 'Comercial' && u.gestor_id === gestorEmail
-          );
-          const emailsComerciais = comerciaisDoGestor.map(u => u.email);
-
-          // Assistentes cujo comercial_id é um dos comerciais do gestor
-          const assistentesDoGestor = todos.filter(
-            u => u.role === 'Assistente' && emailsComerciais.includes(u.comercial_id)
-          );
-
-          // O próprio gestor + subordinados
-          const gestorUser = todos.find(u => u.email === gestorEmail);
-          const lista = [
-            ...(gestorUser ? [gestorUser] : []),
-            ...comerciaisDoGestor,
-            ...assistentesDoGestor,
-          ];
-
-          setSubordinados(lista);
-        } else {
-          setSubordinados([]);
-        }
+    base44.functions.invoke('getSubordinados', {})
+      .then(res => {
+        setSubordinados(res.data?.subordinados || []);
         setIsLoading(false);
       })
       .catch(() => {
+        setSubordinados([]);
         setIsLoading(false);
       });
   }, [user?.email, userProfile?.role]);
