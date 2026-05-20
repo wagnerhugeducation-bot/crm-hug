@@ -37,7 +37,7 @@ export default function OportunidadeForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, userProfile } = useAuth();
   const { usuarios, getLabel } = useUsuariosMap();
   const { resolverHierarquiaAsync } = useHierarquia();
   const { subordinados, getLabel: getSubLabel, podeAtribuir } = useSubordinados();
@@ -116,7 +116,7 @@ export default function OportunidadeForm() {
         payload.created_by_user_id = user?.id;
         const responsavelFinal = podeAtribuir ? (form.responsavel_id || user?.email) : user?.email;
         payload.responsavel_id = responsavelFinal;
-        const hierarquia = await resolverHierarquiaAsync(responsavelFinal);
+        const hierarquia = await resolverHierarquiaAsync(responsavelFinal, userProfile);
         payload.responsavel_gestor_id = hierarquia.responsavel_gestor_id;
         payload.responsavel_comercial_id = hierarquia.responsavel_comercial_id;
         const nova = await base44.entities.Oportunidade.create(payload);
@@ -126,7 +126,7 @@ export default function OportunidadeForm() {
         // Buscar estado anterior para detectar mudanças
         const [anterior] = await base44.entities.Oportunidade.filter({ id });
         if (payload.responsavel_id) {
-          const hierarquia = await resolverHierarquiaAsync(payload.responsavel_id);
+          const hierarquia = await resolverHierarquiaAsync(payload.responsavel_id, userProfile);
           payload.responsavel_gestor_id = hierarquia.responsavel_gestor_id;
           payload.responsavel_comercial_id = hierarquia.responsavel_comercial_id;
         }

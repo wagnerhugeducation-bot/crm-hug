@@ -42,7 +42,7 @@ function FieldError({ msg }) {
 export default function OrgaoForm() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, userProfile } = useAuth();
   const { usuarios, getLabel } = useUsuariosMap();
   const { resolverHierarquiaAsync } = useHierarquia();
   const { subordinados, getLabel: getSubLabel, podeAtribuir } = useSubordinados();
@@ -142,7 +142,7 @@ Formato: use texto corrido com marcadores, seja objetivo e direto. Escreva em po
     setIsLoading(true);
     try {
       const responsavelFinal = podeAtribuir ? (form.responsavel_id || user?.email) : user?.email;
-      const hierarquia = await resolverHierarquiaAsync(responsavelFinal);
+      const hierarquia = await resolverHierarquiaAsync(responsavelFinal, userProfile);
       const payload = {
         ...form,
         responsavel_id: responsavelFinal,

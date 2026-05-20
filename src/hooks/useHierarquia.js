@@ -34,8 +34,11 @@ export function useHierarquia() {
   /**
    * Versão ASSÍNCRONA — busca dados frescos do servidor antes de resolver.
    * Use esta versão em onSubmit para garantir dados atualizados.
+   * @param responsavelEmail - email do responsável a resolver
+   * @param selfProfile - (opcional) objeto com os dados do próprio usuário logado (ex: userProfile do AuthContext),
+   *   usado como fallback quando ele não tem permissão para listar todos os usuários (ex: role Comercial)
    */
-  const resolverHierarquiaAsync = async (responsavelEmail) => {
+  const resolverHierarquiaAsync = async (responsavelEmail, selfProfile = null) => {
     if (!responsavelEmail) return { responsavel_gestor_id: null, responsavel_comercial_id: null };
     try {
       // Busca dados frescos para garantir que gestor_id/comercial_id estejam atualizados
@@ -46,8 +49,13 @@ export function useHierarquia() {
       setUsuariosMap(map);
       return _resolver(responsavelEmail, map);
     } catch {
-      // Se não tiver permissão para listar usuários (ex: Comercial), usa o mapa local já carregado
-      return _resolver(responsavelEmail, usuariosMapRef.current);
+      // Se não tiver permissão para listar usuários (ex: Comercial), usa o mapa local já carregado.
+      // Se o mapa local também estiver vazio, tenta resolver com selfProfile como fallback.
+      const localMap = { ...usuariosMapRef.current };
+      if (selfProfile && !localMap[responsavelEmail]) {
+        localMap[responsavelEmail] = selfProfile;
+      }
+      return _resolver(responsavelEmail, localMap);
     }
   };
 

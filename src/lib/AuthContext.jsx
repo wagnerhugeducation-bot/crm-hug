@@ -31,6 +31,9 @@ export const AuthProvider = ({ children }) => {
       email: authUser.email,
       full_name: authUser.full_name,
       id: authUser.id,
+      gestor_id: authUser?.gestor_id ?? authUser?.data?.gestor_id ?? null,
+      comercial_id: authUser?.comercial_id ?? authUser?.data?.comercial_id ?? null,
+      nickname: authUser?.nickname ?? authUser?.data?.nickname ?? null,
     };
   };
 

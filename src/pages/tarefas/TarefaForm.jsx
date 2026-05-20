@@ -25,7 +25,7 @@ export default function TarefaForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, userProfile } = useAuth();
   const { usuarios, getLabel } = useUsuariosMap();
   const { resolverHierarquiaAsync } = useHierarquia();
   const { subordinados, getLabel: getSubLabel, podeAtribuir } = useSubordinados();
@@ -69,10 +69,10 @@ export default function TarefaForm() {
     if (!form.titulo.trim()) { toast.error('Título é obrigatório.'); return; }
     setIsLoading(true);
     const responsavelFinal = podeAtribuir ? (form.responsavel_id || user?.email) : user?.email;
-    const hierarquia = await resolverHierarquiaAsync(responsavelFinal);
+    const hierarquia = await resolverHierarquiaAsync(responsavelFinal, userProfile);
     const payload = isEdit ? {
       ...form,
-      ...(await resolverHierarquiaAsync(form.responsavel_id || user?.email)),
+      ...(await resolverHierarquiaAsync(form.responsavel_id || user?.email, userProfile)),
     } : {
       ...form,
       created_by_user_id: user?.id,
