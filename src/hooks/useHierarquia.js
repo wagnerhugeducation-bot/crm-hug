@@ -1,52 +1,77 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 
 /**
  * Retorna funções para resolver a hierarquia de um usuário.
  * Dado o email de um responsável, retorna os campos gestor e comercial
  * para serem salvos nos registros de dados.
+ *
+ * IMPORTANTE: resolverHierarquiaAsync busca os dados frescos do servidor,
+ * garantindo que a hierarquia seja sempre resolvida corretamente,
+ * mesmo que o mapa local ainda não tenha carregado.
  */
 export function useHierarquia() {
   const [usuariosMap, setUsuariosMap] = useState({});
+  const usuariosMapRef = useRef({});
 
   useEffect(() => {
     base44.entities.User.list().then(res => {
       const map = {};
       res.forEach(u => { map[u.email] = u; });
+      usuariosMapRef.current = map;
       setUsuariosMap(map);
     }).catch(() => {});
   }, []);
 
   /**
-   * Dado o email do responsável selecionado, retorna:
-   * { responsavel_gestor_id, responsavel_comercial_id }
+   * Versão SÍNCRONA — só funciona se o mapa já carregou.
+   * Use resolverHierarquiaAsync nos submits de formulários.
    */
   const resolverHierarquia = (responsavelEmail) => {
-    if (!responsavelEmail) return { responsavel_gestor_id: null, responsavel_comercial_id: null };
-
-    const responsavel = usuariosMap[responsavelEmail];
-    if (!responsavel) return { responsavel_gestor_id: null, responsavel_comercial_id: null };
-
-    // Comercial → gestor_id aponta para o gestor
-    // Assistente → comercial_id aponta para o comercial, e o comercial tem gestor_id
-    if (responsavel.role === 'Comercial') {
-      return {
-        responsavel_gestor_id: responsavel.gestor_id || null,
-        responsavel_comercial_id: null,
-      };
-    }
-
-    if (responsavel.role === 'Assistente') {
-      const comercial = responsavel.comercial_id ? usuariosMap[responsavel.comercial_id] : null;
-      return {
-        responsavel_gestor_id: comercial?.gestor_id || null,
-        responsavel_comercial_id: responsavel.comercial_id || null,
-      };
-    }
-
-    // Gestor, Administrador, Visualização — sem campos de hierarquia abaixo
-    return { responsavel_gestor_id: null, responsavel_comercial_id: null };
+    return _resolver(responsavelEmail, usuariosMapRef.current);
   };
 
-  return { resolverHierarquia, usuariosMap };
+  /**
+   * Versão ASSÍNCRONA — busca dados frescos do servidor antes de resolver.
+   * Use esta versão em onSubmit para garantir dados atualizados.
+   */
+  const resolverHierarquiaAsync = async (responsavelEmail) => {
+    if (!responsavelEmail) return { responsavel_gestor_id: null, responsavel_comercial_id: null };
+    // Busca dados frescos para garantir que gestor_id/comercial_id estejam atualizados
+    const usuarios = await base44.entities.User.list();
+    const map = {};
+    usuarios.forEach(u => { map[u.email] = u; });
+    usuariosMapRef.current = map;
+    setUsuariosMap(map);
+    return _resolver(responsavelEmail, map);
+  };
+
+  return { resolverHierarquia, resolverHierarquiaAsync, usuariosMap };
+}
+
+function _resolver(responsavelEmail, map) {
+  if (!responsavelEmail) return { responsavel_gestor_id: null, responsavel_comercial_id: null };
+
+  const responsavel = map[responsavelEmail];
+  if (!responsavel) return { responsavel_gestor_id: null, responsavel_comercial_id: null };
+
+  // Comercial → gestor_id aponta para o gestor ao qual é subordinado
+  if (responsavel.role === 'Comercial') {
+    return {
+      responsavel_gestor_id: responsavel.gestor_id || null,
+      responsavel_comercial_id: null,
+    };
+  }
+
+  // Assistente → comercial_id aponta para o comercial, e o comercial tem gestor_id
+  if (responsavel.role === 'Assistente') {
+    const comercial = responsavel.comercial_id ? map[responsavel.comercial_id] : null;
+    return {
+      responsavel_gestor_id: comercial?.gestor_id || null,
+      responsavel_comercial_id: responsavel.comercial_id || null,
+    };
+  }
+
+  // Gestor, Administrador, Visualização — sem hierarquia abaixo
+  return { responsavel_gestor_id: null, responsavel_comercial_id: null };
 }

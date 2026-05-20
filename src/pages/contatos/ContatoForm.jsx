@@ -32,7 +32,7 @@ export default function ContatoForm() {
   const location = useLocation();
   const { user, isAdmin } = useAuth();
   const { usuarios, getLabel } = useUsuariosMap();
-  const { resolverHierarquia } = useHierarquia();
+  const { resolverHierarquiaAsync } = useHierarquia();
   const isEdit = !!id && id !== 'novo';
   const [form, setForm] = useState(defaultForm);
   const [orgaos, setOrgaos] = useState([]);
@@ -80,7 +80,7 @@ export default function ContatoForm() {
     setIsLoading(true);
     try {
       const responsavelFinal = isAdmin() ? (form.responsavel_id || user?.email) : user?.email;
-      const hierarquia = resolverHierarquia(responsavelFinal);
+      const hierarquia = await resolverHierarquiaAsync(responsavelFinal);
       const payload = {
         ...form,
         responsavel_id: responsavelFinal,

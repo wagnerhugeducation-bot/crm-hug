@@ -27,7 +27,7 @@ export default function DocumentoForm() {
   const location = useLocation();
   const { user, isAdmin } = useAuth();
   const { usuarios, getLabel } = useUsuariosMap();
-  const { resolverHierarquia } = useHierarquia();
+  const { resolverHierarquiaAsync } = useHierarquia();
   const isEdit = !!id && id !== 'novo';
   const [form, setForm] = useState(defaultForm);
   const [oportunidades, setOportunidades] = useState([]);
@@ -67,22 +67,26 @@ export default function DocumentoForm() {
     if (!form.nome.trim()) { toast.error('Nome é obrigatório.'); return; }
     if (!form.tipo) { toast.error('Tipo é obrigatório.'); return; }
     setIsLoading(true);
-    const responsavelFinal = isAdmin() ? (form.responsavel_id || user?.email) : user?.email;
-    const hierarquia = resolverHierarquia(responsavelFinal);
-    const payload = {
-      ...form,
-      responsavel_id: responsavelFinal,
-      responsavel_gestor_id: hierarquia.responsavel_gestor_id,
-      responsavel_comercial_id: hierarquia.responsavel_comercial_id,
-    };
-    if (isEdit) {
-      await base44.entities.Documento.update(id, payload);
-      toast.success('Documento atualizado.');
-    } else {
-      await base44.entities.Documento.create(payload);
-      toast.success('Documento salvo.');
+    try {
+      const responsavelFinal = isAdmin() ? (form.responsavel_id || user?.email) : user?.email;
+      const hierarquia = await resolverHierarquiaAsync(responsavelFinal);
+      const payload = {
+        ...form,
+        responsavel_id: responsavelFinal,
+        responsavel_gestor_id: hierarquia.responsavel_gestor_id,
+        responsavel_comercial_id: hierarquia.responsavel_comercial_id,
+      };
+      if (isEdit) {
+        await base44.entities.Documento.update(id, payload);
+        toast.success('Documento atualizado.');
+      } else {
+        await base44.entities.Documento.create(payload);
+        toast.success('Documento salvo.');
+      }
+      navigate('/documentos');
+    } finally {
+      setIsLoading(false);
     }
-    navigate('/documentos');
   };
 
   if (isFetching) return <div className="flex justify-center py-12"><div className="w-7 h-7 border-4 border-primary/30 border-t-primary rounded-full animate-spin" /></div>;
