@@ -3,6 +3,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { useUsuariosMap } from '@/hooks/useUsuariosMap';
+import { useHierarquia } from '@/hooks/useHierarquia';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,6 +38,7 @@ export default function OportunidadeForm() {
   const location = useLocation();
   const { user, isAdmin } = useAuth();
   const { usuarios, getLabel } = useUsuariosMap();
+  const { resolverHierarquia } = useHierarquia();
   const isEdit = !!id && id !== 'nova';
   const [form, setForm] = useState(defaultForm);
   const [orgaos, setOrgaos] = useState([]);
@@ -110,13 +112,22 @@ export default function OportunidadeForm() {
       };
       if (!isEdit) {
         payload.created_by_user_id = user?.id;
-        payload.responsavel_id = isAdmin() ? (form.responsavel_id || user?.email) : user?.email;
+        const responsavelFinal = isAdmin() ? (form.responsavel_id || user?.email) : user?.email;
+        payload.responsavel_id = responsavelFinal;
+        const hierarquia = resolverHierarquia(responsavelFinal);
+        payload.responsavel_gestor_id = hierarquia.responsavel_gestor_id;
+        payload.responsavel_comercial_id = hierarquia.responsavel_comercial_id;
         const nova = await base44.entities.Oportunidade.create(payload);
         await logAtividade(nova.id, 'criacao', `Oportunidade "${nova.nome}" criada.`);
         toast.success('Oportunidade cadastrada com sucesso.');
       } else {
         // Buscar estado anterior para detectar mudanças
         const [anterior] = await base44.entities.Oportunidade.filter({ id });
+        if (payload.responsavel_id) {
+          const hierarquia = resolverHierarquia(payload.responsavel_id);
+          payload.responsavel_gestor_id = hierarquia.responsavel_gestor_id;
+          payload.responsavel_comercial_id = hierarquia.responsavel_comercial_id;
+        }
         await base44.entities.Oportunidade.update(id, payload);
 
         const logs = [];

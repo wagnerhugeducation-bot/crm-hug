@@ -3,6 +3,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { useUsuariosMap } from '@/hooks/useUsuariosMap';
+import { useHierarquia } from '@/hooks/useHierarquia';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,6 +26,7 @@ export default function TarefaForm() {
   const location = useLocation();
   const { user, isAdmin } = useAuth();
   const { usuarios, getLabel } = useUsuariosMap();
+  const { resolverHierarquia } = useHierarquia();
   const isEdit = !!id && id !== 'nova';
   const [form, setForm] = useState(defaultForm);
   const [oportunidades, setOportunidades] = useState([]);
@@ -64,10 +66,17 @@ export default function TarefaForm() {
     e.preventDefault();
     if (!form.titulo.trim()) { toast.error('Título é obrigatório.'); return; }
     setIsLoading(true);
-    const payload = isEdit ? form : {
+    const responsavelFinal = isAdmin() ? (form.responsavel_id || user?.email) : user?.email;
+    const hierarquia = resolverHierarquia(responsavelFinal);
+    const payload = isEdit ? {
+      ...form,
+      ...resolverHierarquia(form.responsavel_id || user?.email),
+    } : {
       ...form,
       created_by_user_id: user?.id,
-      responsavel_id: isAdmin() ? (form.responsavel_id || user?.email) : user?.email
+      responsavel_id: responsavelFinal,
+      responsavel_gestor_id: hierarquia.responsavel_gestor_id,
+      responsavel_comercial_id: hierarquia.responsavel_comercial_id,
     };
     if (isEdit) {
       await base44.entities.Tarefa.update(id, payload);

@@ -67,6 +67,14 @@
       "type": "string",
       "description": "ID do respons\u00e1vel"
     },
+    "responsavel_gestor_id": {
+      "type": "string",
+      "description": "Email do gestor do respons\u00e1vel (hierarquia)"
+    },
+    "responsavel_comercial_id": {
+      "type": "string",
+      "description": "Email do comercial supervisor do respons\u00e1vel (hierarquia)"
+    },
     "assigned_user_id": {
       "type": "string",
       "description": "ID do usu\u00e1rio atribu\u00eddo"
@@ -117,15 +125,16 @@
           }
         },
         {
-          "user_condition": {
-            "role": "Gestor"
-          }
-        },
-        {
           "created_by": "{{user.email}}"
         },
         {
           "data.responsavel_id": "{{user.email}}"
+        },
+        {
+          "data.responsavel_gestor_id": "{{user.email}}"
+        },
+        {
+          "data.responsavel_comercial_id": "{{user.email}}"
         }
       ]
     },
@@ -146,6 +155,9 @@
         },
         {
           "data.responsavel_id": "{{user.email}}"
+        },
+        {
+          "data.responsavel_gestor_id": "{{user.email}}"
         }
       ]
     },

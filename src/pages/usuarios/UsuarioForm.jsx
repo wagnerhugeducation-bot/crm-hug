@@ -22,17 +22,27 @@ export default function UsuarioForm() {
   const [inviteEmail, setInviteEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(isEdit);
+  const [gestores, setGestores] = useState([]);
+  const [comerciais, setComerciais] = useState([]);
 
   useEffect(() => {
     if (!isAdmin()) { navigate('/'); return; }
-    if (isEdit) {
-      base44.entities.User.list().then(res => {
+    base44.entities.User.list().then(res => {
+      setGestores(res.filter(u => u.role === 'Gestor'));
+      setComerciais(res.filter(u => u.role === 'Comercial'));
+      if (isEdit) {
         const found = res.find(r => r.id === id);
         if (found) setForm(found);
         setIsFetching(false);
-      });
-    }
+      }
+    });
+    if (!isEdit) setIsFetching(false);
   }, [id]);
+
+  const handleRoleChange = (role) => {
+    // Limpa os campos de hierarquia ao trocar de role
+    setForm(f => ({ ...f, role, gestor_id: undefined, comercial_id: undefined }));
+  };
 
   const handleInvite = async (e) => {
     e.preventDefault();
@@ -53,10 +63,13 @@ export default function UsuarioForm() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await base44.entities.User.update(id, {
+      const payload = {
         role: form.role,
         status_acesso: form.status_acesso,
-      });
+        gestor_id: form.role === 'Comercial' ? (form.gestor_id || null) : null,
+        comercial_id: form.role === 'Assistente' ? (form.comercial_id || null) : null,
+      };
+      await base44.entities.User.update(id, payload);
       toast.success('Usuário atualizado com sucesso.');
       navigate('/usuarios');
     } finally {
@@ -76,7 +89,7 @@ export default function UsuarioForm() {
     <div>
       <PageHeader
         title={isEdit ? 'Editar Usuário' : 'Convidar Usuário'}
-        subtitle={isEdit ? 'Altere perfil e status de acesso' : 'Envie um convite por e-mail'}
+        subtitle={isEdit ? 'Altere perfil, status e hierarquia' : 'Envie um convite por e-mail'}
         actions={
           <Link to="/usuarios">
             <Button variant="outline" className="gap-2"><ArrowLeft className="w-4 h-4" /> Voltar</Button>
@@ -98,13 +111,56 @@ export default function UsuarioForm() {
               </div>
               <div>
                 <Label>Perfil de Acesso</Label>
-                <Select value={form.role} onValueChange={v => setForm(f => ({ ...f, role: v }))}>
+                <Select value={form.role} onValueChange={handleRoleChange}>
                   <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {ROLES.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Comercial → selecionar Gestor */}
+              {form.role === 'Comercial' && (
+                <div>
+                  <Label>Gestor Responsável</Label>
+                  <Select value={form.gestor_id || ''} onValueChange={v => setForm(f => ({ ...f, gestor_id: v }))}>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione o gestor" /></SelectTrigger>
+                    <SelectContent>
+                      {gestores.length === 0
+                        ? <SelectItem value="_none" disabled>Nenhum gestor cadastrado</SelectItem>
+                        : gestores.map(g => (
+                          <SelectItem key={g.email} value={g.email}>
+                            {g.nickname || g.full_name || g.email}
+                          </SelectItem>
+                        ))
+                      }
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">Este comercial faz parte da equipe deste gestor.</p>
+                </div>
+              )}
+
+              {/* Assistente → selecionar Comercial */}
+              {form.role === 'Assistente' && (
+                <div>
+                  <Label>Comercial Supervisor</Label>
+                  <Select value={form.comercial_id || ''} onValueChange={v => setForm(f => ({ ...f, comercial_id: v }))}>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione o comercial" /></SelectTrigger>
+                    <SelectContent>
+                      {comerciais.length === 0
+                        ? <SelectItem value="_none" disabled>Nenhum comercial cadastrado</SelectItem>
+                        : comerciais.map(c => (
+                          <SelectItem key={c.email} value={c.email}>
+                            {c.nickname || c.full_name || c.email}
+                          </SelectItem>
+                        ))
+                      }
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">Este assistente é subordinado a este comercial.</p>
+                </div>
+              )}
+
               <div>
                 <Label>Status de Acesso</Label>
                 <Select value={form.status_acesso} onValueChange={v => setForm(f => ({ ...f, status_acesso: v }))}>
@@ -145,7 +201,7 @@ export default function UsuarioForm() {
               </div>
               <div>
                 <Label>Perfil de Acesso</Label>
-                <Select value={form.role} onValueChange={v => setForm(f => ({ ...f, role: v }))}>
+                <Select value={form.role} onValueChange={handleRoleChange}>
                   <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {ROLES.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
