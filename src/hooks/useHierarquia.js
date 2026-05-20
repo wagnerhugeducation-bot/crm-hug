@@ -37,13 +37,18 @@ export function useHierarquia() {
    */
   const resolverHierarquiaAsync = async (responsavelEmail) => {
     if (!responsavelEmail) return { responsavel_gestor_id: null, responsavel_comercial_id: null };
-    // Busca dados frescos para garantir que gestor_id/comercial_id estejam atualizados
-    const usuarios = await base44.entities.User.list();
-    const map = {};
-    usuarios.forEach(u => { map[u.email] = u; });
-    usuariosMapRef.current = map;
-    setUsuariosMap(map);
-    return _resolver(responsavelEmail, map);
+    try {
+      // Busca dados frescos para garantir que gestor_id/comercial_id estejam atualizados
+      const usuarios = await base44.entities.User.list();
+      const map = {};
+      usuarios.forEach(u => { map[u.email] = u; });
+      usuariosMapRef.current = map;
+      setUsuariosMap(map);
+      return _resolver(responsavelEmail, map);
+    } catch {
+      // Se não tiver permissão para listar usuários (ex: Comercial), usa o mapa local já carregado
+      return _resolver(responsavelEmail, usuariosMapRef.current);
+    }
   };
 
   return { resolverHierarquia, resolverHierarquiaAsync, usuariosMap };

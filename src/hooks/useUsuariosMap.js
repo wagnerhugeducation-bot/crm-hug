@@ -17,7 +17,10 @@ export function useUsuariosMap() {
       setUsuariosMap(map);
       setUsuarios(res);
       setIsLoading(false);
-    }).catch(() => setIsLoading(false));
+    }).catch(() => {
+      setIsLoading(false);
+      // Usuários sem permissão de listar (ex: Comercial) retornam lista vazia silenciosamente
+    });
   }, []);
 
   const getLabel = (email) => {

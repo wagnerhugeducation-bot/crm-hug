@@ -114,35 +114,11 @@
     "orgao_id"
   ],
   "rls": {
-    "create": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "Administrador"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "Gestor"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "Comercial"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "Assistente"
-          }
-        }
-      ]
-    },
     "read": {
       "$or": [
         {
           "user_condition": {
-            "role": "Administrador"
+            "role": "admin"
           }
         },
         {
@@ -153,9 +129,6 @@
         },
         {
           "data.responsavel_gestor_id": "{{user.email}}"
-        },
-        {
-          "data.responsavel_comercial_id": "{{user.email}}"
         }
       ]
     },
@@ -163,12 +136,7 @@
       "$or": [
         {
           "user_condition": {
-            "role": "Administrador"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "Gestor"
+            "role": "admin"
           }
         },
         {
@@ -186,7 +154,7 @@
       "$or": [
         {
           "user_condition": {
-            "role": "Administrador"
+            "role": "admin"
           }
         },
         {

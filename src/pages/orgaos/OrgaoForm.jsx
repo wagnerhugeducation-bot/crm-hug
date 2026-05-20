@@ -155,6 +155,8 @@ Formato: use texto corrido com marcadores, seja objetivo e direto. Escreva em po
         toast.success('Órgão cadastrado com sucesso.');
       }
       navigate('/orgaos');
+    } catch (err) {
+      toast.error('Erro ao salvar: ' + (err?.message || 'Tente novamente.'));
     } finally {
       setIsLoading(false);
     }
