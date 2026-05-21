@@ -98,8 +98,8 @@ export default function Register() {
             <TrendingUp className="w-5 h-5 text-white" />
           </div>
           <div>
-            <span className="text-white font-bold text-xl tracking-wide">GovCRM</span>
-            <span className="text-blue-300 font-medium text-xl"> Brasil</span>
+            <span className="text-white font-bold text-xl tracking-wide">CRM</span>
+            <span className="text-blue-300 font-medium text-xl"> HUG</span>
           </div>
         </div>
         <div className="bg-white rounded-2xl shadow-2xl p-8">
