@@ -23,7 +23,7 @@ const defaultForm = {
   data_entrega_proposta: '', probabilidade: '', concorrentes: '', notas: ''
 };
 
-const LICITACOES = [
+const LICITACOES_PADRAO = [
   'Pregão Eletrônico', 'Pregão Presencial', 'Concorrência',
   'Tomada de Preços', 'Convite', 'Dispensa', 'Inexigibilidade', 'RDC', 'Leilão'
 ];
@@ -44,6 +44,7 @@ export default function OportunidadeForm() {
   const isEdit = !!id && id !== 'nova';
   const [form, setForm] = useState(defaultForm);
   const [orgaos, setOrgaos] = useState([]);
+  const [licitacoes, setLicitacoes] = useState(LICITACOES_PADRAO);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(isEdit);
@@ -52,6 +53,10 @@ export default function OportunidadeForm() {
     const params = new URLSearchParams(location.search);
     const orgaoId = params.get('orgao_id');
     base44.entities.OrgaoPublico.list().then(res => setOrgaos(res));
+    base44.entities.ModalidadeLicitacao.list().then(res => {
+      const extras = res.map(m => m.nome);
+      setLicitacoes([...LICITACOES_PADRAO, ...extras]);
+    });
     if (isEdit) {
       base44.entities.Oportunidade.list().then(res => {
         const found = res.find(r => r.id === id);
@@ -279,7 +284,7 @@ export default function OportunidadeForm() {
               <Select value={form.tipo_licitacao} onValueChange={v => set('tipo_licitacao', v)}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
-                  {LICITACOES.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                  {licitacoes.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

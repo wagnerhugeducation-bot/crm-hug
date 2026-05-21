@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import PageHeader from '@/components/ui/PageHeader';
 import { toast } from 'sonner';
-import { Save, User, Shield, Users, KeyRound, AtSign } from 'lucide-react';
+import { Save, User, Shield, Users, KeyRound, AtSign, Gavel } from 'lucide-react';
 import GerenciamentoUsuarios from '@/components/usuarios/GerenciamentoUsuarios';
+import ModalidadesLicitacao from '@/components/configuracoes/ModalidadesLicitacao';
 
 export default function Configuracoes() {
   const { user, isAdmin } = useAuth();
@@ -168,6 +169,20 @@ export default function Configuracoes() {
           ))}
         </div>
       </div>
+
+      {/* Modalidades de Licitação — somente admin */}
+      {isAdmin() && (
+        <div className="bg-card rounded-xl border border-border p-6">
+          <div className="flex items-center gap-2 mb-5">
+            <Gavel className="w-4 h-4 text-primary" />
+            <h2 className="text-sm font-semibold">Modalidades de Licitação</h2>
+          </div>
+          <p className="text-xs text-muted-foreground mb-4">
+            Adicione modalidades personalizadas além das opções padrão do sistema. Elas ficarão disponíveis no cadastro de oportunidades.
+          </p>
+          <ModalidadesLicitacao />
+        </div>
+      )}
 
       {/* Gerenciamento de Usuários — somente admin */}
       {isAdmin() && (
