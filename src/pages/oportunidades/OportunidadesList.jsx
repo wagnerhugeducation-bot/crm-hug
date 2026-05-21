@@ -47,21 +47,30 @@ export default function OportunidadesList() {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterEtapa, setFilterEtapa] = useState('all');
+  const [filterModalidade, setFilterModalidade] = useState('all');
   const [filterCriador, setFilterCriador] = useState('all');
   const [filterResponsavel, setFilterResponsavel] = useState('all');
+  const [modalidades, setModalidades] = useState([]);
   const [page, setPage] = useState(1);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showExport, setShowExport] = useState(false);
 
+  const LICITACOES_PADRAO = [
+    'Pregão Eletrônico', 'Pregão Presencial', 'Concorrência',
+    'Tomada de Preços', 'Convite', 'Dispensa', 'Inexigibilidade', 'RDC', 'Leilão'
+  ];
+
   const load = async () => {
     if (!user) return;
     setIsLoading(true);
-    const [ops, orgList, bantList] = await Promise.all([
+    const [ops, orgList, bantList, modList] = await Promise.all([
       base44.entities.Oportunidade.list('-created_date'),
       base44.entities.OrgaoPublico.list(),
       base44.entities.ScoreBANT.list(),
+      base44.entities.ModalidadeLicitacao.list(),
     ]);
+    setModalidades([...LICITACOES_PADRAO, ...modList.map(m => m.nome)]);
     const map = {};
     orgList.forEach(o => { map[o.id] = o.nome; });
     setOrgaos(map);
@@ -80,9 +89,10 @@ export default function OportunidadesList() {
     );
     const matchStatus = filterStatus === 'all' || d.status === filterStatus;
     const matchEtapa = filterEtapa === 'all' || d.etapa_pipeline === filterEtapa;
+    const matchModalidade = filterModalidade === 'all' || d.tipo_licitacao === filterModalidade;
     const matchCriador = filterCriador === 'all' || d.created_by === filterCriador;
     const matchResponsavel = filterResponsavel === 'all' || d.responsavel_id === filterResponsavel;
-    return matchSearch && matchStatus && matchEtapa && matchCriador && matchResponsavel;
+    return matchSearch && matchStatus && matchEtapa && matchModalidade && matchCriador && matchResponsavel;
   });
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -185,6 +195,15 @@ export default function OportunidadesList() {
           <SelectContent>
             <SelectItem value="all">Todas Etapas</SelectItem>
             {['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento'].map(v => (
+              <SelectItem key={v} value={v}>{v}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={filterModalidade} onValueChange={v => { setFilterModalidade(v); setPage(1); }}>
+          <SelectTrigger className="w-48"><SelectValue placeholder="Modalidade" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas Modalidades</SelectItem>
+            {modalidades.map(v => (
               <SelectItem key={v} value={v}>{v}</SelectItem>
             ))}
           </SelectContent>
