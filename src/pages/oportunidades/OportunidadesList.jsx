@@ -6,21 +6,21 @@ import { Plus, Target, Pencil, Trash2, Eye, Download } from 'lucide-react';
 import ExportModal from '@/components/exportacao/ExportModal';
 
 const buildExportFields = (getLabel, orgaos) => [
-  { key: 'nome', label: 'Nome' },
-  { key: 'orgao_id', label: 'Órgão', transform: v => orgaos[v] || v || '' },
-  { key: 'status', label: 'Status' },
-  { key: 'etapa_pipeline', label: 'Etapa Pipeline' },
-  { key: 'tipo_licitacao', label: 'Modalidade' },
-  { key: 'numero_edital', label: 'Nº Edital' },
-  { key: 'valor_estimado', label: 'Valor Estimado' },
-  { key: 'probabilidade', label: 'Probabilidade (%)' },
-  { key: 'data_abertura', label: 'Data Abertura' },
-  { key: 'data_fechamento', label: 'Previsão Fechamento' },
-  { key: 'data_entrega_proposta', label: 'Prazo Proposta' },
-  { key: 'responsavel_id', label: 'Responsável', transform: v => getLabel(v) },
-  { key: 'concorrentes', label: 'Concorrentes' },
-  { key: 'notas', label: 'Observações' },
-];
+{ key: 'nome', label: 'Nome' },
+{ key: 'orgao_id', label: 'Órgão', transform: (v) => orgaos[v] || v || '' },
+{ key: 'status', label: 'Status' },
+{ key: 'etapa_pipeline', label: 'Etapa Pipeline' },
+{ key: 'tipo_licitacao', label: 'Modalidade' },
+{ key: 'numero_edital', label: 'Nº Edital' },
+{ key: 'valor_estimado', label: 'Valor Estimado' },
+{ key: 'probabilidade', label: 'Probabilidade (%)' },
+{ key: 'data_abertura', label: 'Data Abertura' },
+{ key: 'data_fechamento', label: 'Previsão Fechamento' },
+{ key: 'data_entrega_proposta', label: 'Prazo Proposta' },
+{ key: 'responsavel_id', label: 'Responsável', transform: (v) => getLabel(v) },
+{ key: 'concorrentes', label: 'Concorrentes' },
+{ key: 'notas', label: 'Observações' }];
+
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import BANTGauge from '@/components/bant/BANTGauge';
@@ -57,35 +57,35 @@ export default function OportunidadesList() {
   const [showExport, setShowExport] = useState(false);
 
   const LICITACOES_PADRAO = [
-    'Pregão Eletrônico', 'Pregão Presencial', 'Concorrência',
-    'Tomada de Preços', 'Convite', 'Dispensa', 'Inexigibilidade', 'RDC', 'Leilão'
-  ];
+  'Pregão Eletrônico', 'Pregão Presencial', 'Concorrência',
+  'Tomada de Preços', 'Convite', 'Dispensa', 'Inexigibilidade', 'RDC', 'Leilão'];
+
 
   const load = async () => {
     if (!user) return;
     setIsLoading(true);
     const [ops, orgList, bantList, modList] = await Promise.all([
-      base44.entities.Oportunidade.list('-created_date'),
-      base44.entities.OrgaoPublico.list(),
-      base44.entities.ScoreBANT.list(),
-      base44.entities.ModalidadeLicitacao.list(),
-    ]);
-    setModalidades([...LICITACOES_PADRAO, ...modList.map(m => m.nome)]);
+    base44.entities.Oportunidade.list('-created_date'),
+    base44.entities.OrgaoPublico.list(),
+    base44.entities.ScoreBANT.list(),
+    base44.entities.ModalidadeLicitacao.list()]
+    );
+    setModalidades([...LICITACOES_PADRAO, ...modList.map((m) => m.nome)]);
     const map = {};
-    orgList.forEach(o => { map[o.id] = o.nome; });
+    orgList.forEach((o) => {map[o.id] = o.nome;});
     setOrgaos(map);
     const bm = {};
-    bantList.forEach(b => { bm[b.oportunidade_id] = b; });
+    bantList.forEach((b) => {bm[b.oportunidade_id] = b;});
     setBantMap(bm);
     setData(ops);
     setIsLoading(false);
   };
 
-  useEffect(() => { load(); }, [user]);
+  useEffect(() => {load();}, [user]);
 
-  const filtered = data.filter(d => {
+  const filtered = data.filter((d) => {
     const matchSearch = [d.nome, orgaos[d.orgao_id], d.numero_edital, d.tipo_licitacao].some(
-      f => f?.toLowerCase().includes(search.toLowerCase())
+      (f) => f?.toLowerCase().includes(search.toLowerCase())
     );
     const matchStatus = filterStatus === 'all' || d.status === filterStatus;
     const matchEtapa = filterEtapa === 'all' || d.etapa_pipeline === filterEtapa;
@@ -114,46 +114,46 @@ export default function OportunidadesList() {
   };
 
   const columns = [
-    { key: 'nome', label: 'Nome', sortable: true },
-    {
-      key: 'orgao_id', label: 'Órgão',
-      render: v => <span className="truncate max-w-[160px] block">{orgaos[v] || '—'}</span>
-    },
-    { key: 'etapa_pipeline', label: 'Etapa', render: v => <StatusBadge value={v} /> },
-    { key: 'status', label: 'Status', render: v => <StatusBadge value={v} /> },
-    {
-      key: 'valor_estimado', label: 'Valor Est.',
-      render: v => v ? `R$ ${Number(v).toLocaleString('pt-BR')}` : '—',
-      sortable: true
-    },
-    {
-      key: 'probabilidade', label: '%',
-      render: v => v ? `${v}%` : '—'
-    },
-    {
-      key: 'data_abertura', label: 'Dias Aberta',
-      sortable: true,
-      render: v => {
-        const d = diasDecorridos(v);
-        if (d === null) return <span className="text-muted-foreground">—</span>;
-        const color = d > 90 ? 'text-destructive font-semibold' : d > 30 ? 'text-warning font-medium' : 'text-foreground';
-        return <span className={`text-xs ${color}`}>{d}d</span>;
-      }
-    },
-    {
-      key: 'id', label: 'BANT',
-      render: (v) => {
-        const b = bantMap[v];
-        return <BANTGauge score={b?.total_score ?? null} size="sm" />;
-      }
-    },
-    {
-      key: 'created_by', label: 'Criador',
-      render: v => <span className="text-xs text-muted-foreground">{getLabel(v)}</span>
-    },
-    {
-      key: 'actions', label: '', render: (_, row) => (
-        <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+  { key: 'nome', label: 'Nome', sortable: true },
+  {
+    key: 'orgao_id', label: 'Órgão',
+    render: (v) => <span className="truncate max-w-[160px] block">{orgaos[v] || '—'}</span>
+  },
+  { key: 'etapa_pipeline', label: 'Etapa', render: (v) => <StatusBadge value={v} /> },
+  { key: 'status', label: 'Status', render: (v) => <StatusBadge value={v} /> },
+  {
+    key: 'valor_estimado', label: 'Valor Est.',
+    render: (v) => v ? `R$ ${Number(v).toLocaleString('pt-BR')}` : '—',
+    sortable: true
+  },
+  {
+    key: 'probabilidade', label: '%',
+    render: (v) => v ? `${v}%` : '—'
+  },
+  {
+    key: 'data_abertura', label: 'Dias Aberta',
+    sortable: true,
+    render: (v) => {
+      const d = diasDecorridos(v);
+      if (d === null) return <span className="text-muted-foreground">—</span>;
+      const color = d > 90 ? 'text-destructive font-semibold' : d > 30 ? 'text-warning font-medium' : 'text-foreground';
+      return <span className={`font-medium text-base ${color}`}>{d}d</span>;
+    }
+  },
+  {
+    key: 'id', label: 'BANT',
+    render: (v) => {
+      const b = bantMap[v];
+      return <BANTGauge score={b?.total_score ?? null} size="sm" />;
+    }
+  },
+  {
+    key: 'created_by', label: 'Criador',
+    render: (v) => <span className="text-xs text-muted-foreground">{getLabel(v)}</span>
+  },
+  {
+    key: 'actions', label: '', render: (_, row) =>
+    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
           <Button variant="ghost" size="icon" className="h-7 w-7" title="Visualizar" onClick={() => navigate(`/oportunidades/${row.id}`)}>
             <Eye className="w-3.5 h-3.5" />
           </Button>
@@ -161,17 +161,17 @@ export default function OportunidadesList() {
             <Pencil className="w-3.5 h-3.5" />
           </Button>
           <Button
-            variant="ghost" size="icon"
-            className="h-7 w-7 text-destructive hover:text-destructive"
-            title="Excluir"
-            onClick={() => setDeleteTarget(row)}
-          >
+        variant="ghost" size="icon"
+        className="h-7 w-7 text-destructive hover:text-destructive"
+        title="Excluir"
+        onClick={() => setDeleteTarget(row)}>
+        
             <Trash2 className="w-3.5 h-3.5" />
           </Button>
         </div>
-      )
-    },
-  ];
+
+  }];
+
 
   return (
     <div>
@@ -179,7 +179,7 @@ export default function OportunidadesList() {
         title="Oportunidades"
         subtitle={`${data.length} oportunidade(s) cadastrada(s)`}
         actions={
-          <div className="flex gap-2">
+        <div className="flex gap-2">
             <Button variant="outline" className="gap-2" onClick={() => setShowExport(true)}>
               <Download className="w-4 h-4" /> Exportar
             </Button>
@@ -187,95 +187,95 @@ export default function OportunidadesList() {
               <Button className="gap-2"><Plus className="w-4 h-4" /> Nova Oportunidade</Button>
             </Link>
           </div>
-        }
-      />
+        } />
+      
 
       <div className="flex flex-wrap gap-3 mb-4">
         <SearchInput
           value={search}
-          onChange={v => { setSearch(v); setPage(1); }}
+          onChange={(v) => {setSearch(v);setPage(1);}}
           placeholder="Buscar por nome, órgão, edital..."
-          className="flex-1 min-w-[200px] max-w-sm"
-        />
-        <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setPage(1); }}>
+          className="flex-1 min-w-[200px] max-w-sm" />
+        
+        <Select value={filterStatus} onValueChange={(v) => {setFilterStatus(v);setPage(1);}}>
           <SelectTrigger className="w-36"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos Status</SelectItem>
-            {['Aberta', 'Em Andamento', 'Ganha', 'Perdida', 'Cancelada'].map(v => (
-              <SelectItem key={v} value={v}>{v}</SelectItem>
-            ))}
+            {['Aberta', 'Em Andamento', 'Ganha', 'Perdida', 'Cancelada'].map((v) =>
+            <SelectItem key={v} value={v}>{v}</SelectItem>
+            )}
           </SelectContent>
         </Select>
-        <Select value={filterEtapa} onValueChange={v => { setFilterEtapa(v); setPage(1); }}>
+        <Select value={filterEtapa} onValueChange={(v) => {setFilterEtapa(v);setPage(1);}}>
           <SelectTrigger className="w-40"><SelectValue placeholder="Etapa" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas Etapas</SelectItem>
-            {['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento'].map(v => (
-              <SelectItem key={v} value={v}>{v}</SelectItem>
-            ))}
+            {['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento'].map((v) =>
+            <SelectItem key={v} value={v}>{v}</SelectItem>
+            )}
           </SelectContent>
         </Select>
-        <Select value={filterModalidade} onValueChange={v => { setFilterModalidade(v); setPage(1); }}>
+        <Select value={filterModalidade} onValueChange={(v) => {setFilterModalidade(v);setPage(1);}}>
           <SelectTrigger className="w-48"><SelectValue placeholder="Modalidade" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas Modalidades</SelectItem>
-            {modalidades.map(v => (
-              <SelectItem key={v} value={v}>{v}</SelectItem>
-            ))}
+            {modalidades.map((v) =>
+            <SelectItem key={v} value={v}>{v}</SelectItem>
+            )}
           </SelectContent>
         </Select>
-        {isAdmin() && usuarios.length > 0 && (
-          <>
-            <Select value={filterCriador} onValueChange={v => { setFilterCriador(v); setPage(1); }}>
+        {isAdmin() && usuarios.length > 0 &&
+        <>
+            <Select value={filterCriador} onValueChange={(v) => {setFilterCriador(v);setPage(1);}}>
               <SelectTrigger className="w-44"><SelectValue placeholder="Criador" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os Criadores</SelectItem>
-                {usuarios.map(u => (
-                  <SelectItem key={u.email} value={u.email}>{getLabel(u.email)}</SelectItem>
-                ))}
+                {usuarios.map((u) =>
+              <SelectItem key={u.email} value={u.email}>{getLabel(u.email)}</SelectItem>
+              )}
               </SelectContent>
             </Select>
-            <Select value={filterResponsavel} onValueChange={v => { setFilterResponsavel(v); setPage(1); }}>
+            <Select value={filterResponsavel} onValueChange={(v) => {setFilterResponsavel(v);setPage(1);}}>
               <SelectTrigger className="w-44"><SelectValue placeholder="Responsável" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos Responsáveis</SelectItem>
-                {usuarios.map(u => (
-                  <SelectItem key={u.email} value={u.email}>{getLabel(u.email)}</SelectItem>
-                ))}
+                {usuarios.map((u) =>
+              <SelectItem key={u.email} value={u.email}>{getLabel(u.email)}</SelectItem>
+              )}
               </SelectContent>
             </Select>
           </>
-        )}
+        }
       </div>
 
-      {!isLoading && filtered.length === 0 ? (
-        <EmptyState
-          icon={Target}
-          title="Nenhuma oportunidade encontrada"
-          description={search ? 'Tente ajustar sua busca ou filtros.' : 'Cadastre a primeira oportunidade.'}
-          action={!search && (
-            <Link to="/oportunidades/nova">
+      {!isLoading && filtered.length === 0 ?
+      <EmptyState
+        icon={Target}
+        title="Nenhuma oportunidade encontrada"
+        description={search ? 'Tente ajustar sua busca ou filtros.' : 'Cadastre a primeira oportunidade.'}
+        action={!search &&
+        <Link to="/oportunidades/nova">
               <Button className="gap-2"><Plus className="w-4 h-4" /> Nova Oportunidade</Button>
             </Link>
-          )}
-        />
-      ) : (
-        <>
+        } /> :
+
+
+      <>
           <DataTable
-            columns={columns}
-            data={paged}
-            isLoading={isLoading}
-            onRowClick={row => navigate(`/oportunidades/${row.id}`)}
-          />
+          columns={columns}
+          data={paged}
+          isLoading={isLoading}
+          onRowClick={(row) => navigate(`/oportunidades/${row.id}`)} />
+        
           <Pagination
-            page={page}
-            totalPages={totalPages}
-            total={filtered.length}
-            pageSize={PAGE_SIZE}
-            onPageChange={setPage}
-          />
+          page={page}
+          totalPages={totalPages}
+          total={filtered.length}
+          pageSize={PAGE_SIZE}
+          onPageChange={setPage} />
+        
         </>
-      )}
+      }
 
       <ConfirmModal
         open={!!deleteTarget}
@@ -284,15 +284,15 @@ export default function OportunidadesList() {
         isLoading={isDeleting}
         title="Excluir Oportunidade"
         description={`Tem certeza que deseja excluir "${deleteTarget?.nome}"?`}
-        confirmLabel="Excluir"
-      />
+        confirmLabel="Excluir" />
+      
       <ExportModal
         open={showExport}
         onClose={() => setShowExport(false)}
         data={filtered}
         fields={buildExportFields(getLabel, orgaos)}
-        title="Oportunidades"
-      />
-    </div>
-  );
+        title="Oportunidades" />
+      
+    </div>);
+
 }
