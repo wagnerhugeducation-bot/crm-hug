@@ -15,6 +15,9 @@ export default function Dashboard() {
   const isGestor = isGestorFn?.() || false;
   const podesFiltrar = isAdmin || isGestor;
 
+  // Admin → todos; Gestor/Comercial → equipe; outros → próprio
+  const defaultFiltro = isAdmin ? '__all__' : (isGestor ? '__all__' : '__me__');
+
   const [allOportunidades, setAllOportunidades] = useState([]);
   const [allOrgaos, setAllOrgaos] = useState([]);
   const [allContatos, setAllContatos] = useState([]);
@@ -22,7 +25,7 @@ export default function Dashboard() {
   const [usuarios, setUsuarios] = useState([]);
   const [bantScores, setBantScores] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filtroUsuario, setFiltroUsuario] = useState('__me__');
+  const [filtroUsuario, setFiltroUsuario] = useState(defaultFiltro);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -88,10 +91,9 @@ export default function Dashboard() {
 
   const pizzaData = useMemo(() => {
     return ETAPAS.map((etapa, i) => {
-      const total = oportunidades
-        .filter(o => o.etapa_pipeline === etapa)
-        .reduce((acc, o) => acc + (o.valor_estimado || 0), 0);
-      return { name: etapa, value: total, color: ETAPA_COLORS[i] };
+      const ops = oportunidades.filter(o => o.etapa_pipeline === etapa);
+      const total = ops.reduce((acc, o) => acc + (o.valor_estimado || 0), 0);
+      return { name: etapa, value: total, count: ops.length, color: ETAPA_COLORS[i] };
     }).filter(d => d.value > 0);
   }, [oportunidades]);
 
@@ -169,7 +171,10 @@ export default function Dashboard() {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value) => [`R$ ${Number(value).toLocaleString('pt-BR')}`, 'Valor']}
+                    formatter={(value, name, props) => [
+                      `R$ ${Number(value).toLocaleString('pt-BR')} (${props.payload.count} oport.)`,
+                      'Valor'
+                    ]}
                   />
                   <Legend
                     iconType="circle"

@@ -107,6 +107,12 @@ export default function OportunidadesList() {
     load();
   };
 
+  const diasDecorridos = (dataAbertura) => {
+    if (!dataAbertura) return null;
+    const diff = Date.now() - new Date(dataAbertura).getTime();
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
+  };
+
   const columns = [
     { key: 'nome', label: 'Nome', sortable: true },
     {
@@ -123,6 +129,16 @@ export default function OportunidadesList() {
     {
       key: 'probabilidade', label: '%',
       render: v => v ? `${v}%` : '—'
+    },
+    {
+      key: 'data_abertura', label: 'Dias Aberta',
+      sortable: true,
+      render: v => {
+        const d = diasDecorridos(v);
+        if (d === null) return <span className="text-muted-foreground">—</span>;
+        const color = d > 90 ? 'text-destructive font-semibold' : d > 30 ? 'text-warning font-medium' : 'text-foreground';
+        return <span className={`text-xs ${color}`}>{d}d</span>;
+      }
     },
     {
       key: 'id', label: 'BANT',
