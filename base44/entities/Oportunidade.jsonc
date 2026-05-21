@@ -10,6 +10,17 @@
       "type": "string",
       "description": "Nome/t\u00edtulo da oportunidade"
     },
+    "objeto_contratado": {
+      "type": "string",
+      "enum": [
+        "Viv\u00eancias",
+        "Met.completa com PcD",
+        "Met.Tradicional",
+        "Met.Inclusiva",
+        "Prog.Especiais"
+      ],
+      "description": "Objeto a ser contratado"
+    },
     "descricao": {
       "type": "string",
       "description": "Descri\u00e7\u00e3o detalhada"

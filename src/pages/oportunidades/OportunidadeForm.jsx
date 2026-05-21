@@ -208,6 +208,17 @@ export default function OportunidadeForm() {
               <FieldError msg={errors.nome} />
             </div>
             <div className="sm:col-span-2">
+              <Label>Objeto a ser contratado</Label>
+              <Select value={form.objeto_contratado || ''} onValueChange={v => set('objeto_contratado', v)}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione o objeto" /></SelectTrigger>
+                <SelectContent>
+                  {['Vivências', 'Met.completa com PcD', 'Met.Tradicional', 'Met.Inclusiva', 'Prog.Especiais'].map(v => (
+                    <SelectItem key={v} value={v}>{v}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="sm:col-span-2">
               <Label>Descrição</Label>
               <Textarea
                 value={form.descricao}

@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/AuthContext';
 import TarefasCalendario from '@/components/dashboard/TarefasCalendario';
 import KanbanBANT from '@/components/dashboard/KanbanBANT';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -195,7 +195,7 @@ export default function Dashboard() {
                 <PieChart>
                   <Pie
                     data={pizzaData}
-                    cx="40%"
+                    cx="50%"
                     cy="50%"
                     innerRadius={55}
                     outerRadius={90}
@@ -209,12 +209,6 @@ export default function Dashboard() {
                     ))}
                   </Pie>
                   <Tooltip content={<CustomTooltip />} />
-                  <Legend
-                    layout="vertical"
-                    align="right"
-                    verticalAlign="middle"
-                    content={<CustomLegend />}
-                  />
                 </PieChart>
               </ResponsiveContainer>
             )}

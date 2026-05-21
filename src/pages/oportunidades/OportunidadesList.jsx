@@ -50,6 +50,7 @@ export default function OportunidadesList() {
   const urlEtapa = new URLSearchParams(location.search).get('etapa') || 'all';
   const [filterEtapa, setFilterEtapa] = useState(urlEtapa);
   const [filterModalidade, setFilterModalidade] = useState('all');
+  const [filterObjeto, setFilterObjeto] = useState('all');
   const [filterCriador, setFilterCriador] = useState('all');
   const [filterResponsavel, setFilterResponsavel] = useState('all');
   const [modalidades, setModalidades] = useState([]);
@@ -94,7 +95,8 @@ export default function OportunidadesList() {
     const matchModalidade = filterModalidade === 'all' || d.tipo_licitacao === filterModalidade;
     const matchCriador = filterCriador === 'all' || d.created_by === filterCriador;
     const matchResponsavel = filterResponsavel === 'all' || d.responsavel_id === filterResponsavel;
-    return matchSearch && matchStatus && matchEtapa && matchModalidade && matchCriador && matchResponsavel;
+    const matchObjeto = filterObjeto === 'all' || d.objeto_contratado === filterObjeto;
+    return matchSearch && matchStatus && matchEtapa && matchModalidade && matchCriador && matchResponsavel && matchObjeto;
   });
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -117,6 +119,7 @@ export default function OportunidadesList() {
 
   const columns = [
   { key: 'nome', label: 'Nome', sortable: true },
+  { key: 'objeto_contratado', label: 'Objeto', sortable: true, render: (v) => v ? <span className="text-xs">{v}</span> : <span className="text-muted-foreground">—</span> },
   {
     key: 'orgao_id', label: 'Órgão', sortable: true,
     render: (v) => <span className="truncate max-w-[160px] block">{orgaos[v] || '—'}</span>
@@ -220,6 +223,15 @@ export default function OportunidadesList() {
           <SelectContent>
             <SelectItem value="all">Todas Modalidades</SelectItem>
             {modalidades.map((v) =>
+            <SelectItem key={v} value={v}>{v}</SelectItem>
+            )}
+          </SelectContent>
+        </Select>
+        <Select value={filterObjeto} onValueChange={(v) => {setFilterObjeto(v);setPage(1);}}>
+          <SelectTrigger className="w-48"><SelectValue placeholder="Objeto" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos Objetos</SelectItem>
+            {['Vivências', 'Met.completa com PcD', 'Met.Tradicional', 'Met.Inclusiva', 'Prog.Especiais'].map((v) =>
             <SelectItem key={v} value={v}>{v}</SelectItem>
             )}
           </SelectContent>
