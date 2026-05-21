@@ -1,14 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Building2, Users, Target, CheckSquare, Filter } from 'lucide-react';
-import StatCard from '@/components/ui/StatCard';
+import { Target, Filter } from 'lucide-react';
 import PageHeader from '@/components/ui/PageHeader';
-import StatusBadge from '@/components/ui/StatusBadge';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import TarefasCalendario from '@/components/dashboard/TarefasCalendario';
 import KanbanBANT from '@/components/dashboard/KanbanBANT';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function Dashboard() {
   const { user, isAdmin: isAdminFn, isGestor: isGestorFn, userProfile } = useAuth();
@@ -84,14 +83,17 @@ export default function Dashboard() {
     );
   }, [tarefas, emailFiltro, emailsAtivos]);
 
-  const recentOps = useMemo(() => oportunidades.slice(0, 5), [oportunidades]);
+  const ETAPAS = ['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento'];
+  const ETAPA_COLORS = ['#f97316', '#3b82f6', '#8b5cf6', '#10b981', '#ef4444'];
 
-  const stats = useMemo(() => ({
-    orgaos: new Set(oportunidades.map(o => o.orgao_id).filter(Boolean)).size,
-    contatos: new Set(allContatos.filter(c => oportunidades.some(o => o.orgao_id === c.orgao_id)).map(c => c.id)).size,
-    oportunidades: oportunidades.length,
-    tarefas: tarefasFiltradas.filter(t => t.status === 'Pendente').length,
-  }), [oportunidades, tarefasFiltradas, allContatos]);
+  const pizzaData = useMemo(() => {
+    return ETAPAS.map((etapa, i) => {
+      const total = oportunidades
+        .filter(o => o.etapa_pipeline === etapa)
+        .reduce((acc, o) => acc + (o.valor_estimado || 0), 0);
+      return { name: etapa, value: total, color: ETAPA_COLORS[i] };
+    }).filter(d => d.value > 0);
+  }, [oportunidades]);
 
   const usuarioLabel = (u) => u.nickname ? `@${u.nickname}` : (u.full_name || u.email);
 
@@ -131,61 +133,51 @@ export default function Dashboard() {
         }
       />
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title={emailFiltro === '__all__' ? 'Órgãos Públicos' : 'Órgãos Relacionados'}
-          value={isLoading ? '...' : stats.orgaos}
-          icon={Building2} iconColor="text-primary" iconBg="bg-primary/10"
-        />
-        <StatCard
-          title={emailFiltro === '__all__' ? 'Contatos' : 'Contatos Relacionados'}
-          value={isLoading ? '...' : stats.contatos}
-          icon={Users} iconColor="text-blue-600" iconBg="bg-blue-50"
-        />
-        <StatCard
-          title="Oportunidades"
-          value={isLoading ? '...' : stats.oportunidades}
-          icon={Target} iconColor="text-emerald-600" iconBg="bg-emerald-50"
-        />
-        <StatCard
-          title="Tarefas Pendentes"
-          value={isLoading ? '...' : stats.tarefas}
-          icon={CheckSquare} iconColor="text-amber-600" iconBg="bg-amber-50"
-        />
-      </div>
-
       {/* Kanban BANT */}
       <KanbanBANT oportunidades={oportunidades} bantScores={bantScores} isLoading={isLoading} />
 
       {/* Main content */}
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Oportunidades Recentes */}
+        {/* Oportunidades por Etapa - Gráfico Pizza */}
         <div className="bg-card rounded-xl border border-border">
           <div className="flex items-center justify-between px-5 py-4 border-b border-border">
             <div className="flex items-center gap-2">
               <Target className="w-4 h-4 text-primary" />
-              <h2 className="text-sm font-semibold text-foreground">Oportunidades Recentes</h2>
+              <h2 className="text-sm font-semibold text-foreground">Valor por Etapa do Pipeline</h2>
             </div>
             <Link to="/oportunidades" className="text-xs text-primary hover:underline font-medium">Ver todas</Link>
           </div>
-          <div className="divide-y divide-border">
+          <div className="px-4 py-4 h-[280px] flex items-center justify-center">
             {isLoading ? (
-              Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="px-5 py-3"><div className="h-4 bg-muted animate-pulse rounded" /></div>
-              ))
-            ) : recentOps.length === 0 ? (
-              <div className="px-5 py-8 text-center text-sm text-muted-foreground">Nenhuma oportunidade encontrada</div>
+              <div className="w-full h-full bg-muted animate-pulse rounded-lg" />
+            ) : pizzaData.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhuma oportunidade com valor cadastrado</p>
             ) : (
-              recentOps.map(op => (
-                <Link key={op.id} to={`/oportunidades/${op.id}`} className="flex items-center justify-between px-5 py-3 hover:bg-muted/30 transition-colors">
-                  <div className="min-w-0 flex-1 mr-3">
-                    <p className="text-sm font-medium text-foreground truncate">{op.nome}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{op.etapa_pipeline || '—'}</p>
-                  </div>
-                  <StatusBadge value={op.status} />
-                </Link>
-              ))
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pizzaData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={55}
+                    outerRadius={90}
+                    paddingAngle={3}
+                    dataKey="value"
+                  >
+                    {pizzaData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value) => [`R$ ${Number(value).toLocaleString('pt-BR')}`, 'Valor']}
+                  />
+                  <Legend
+                    iconType="circle"
+                    iconSize={8}
+                    formatter={(value) => <span className="text-xs">{value}</span>}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
             )}
           </div>
         </div>
