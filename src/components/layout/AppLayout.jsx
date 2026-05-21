@@ -21,7 +21,7 @@ export default function AppLayout() {
 
   const title = pageTitles[location.pathname] ||
     Object.entries(pageTitles).find(([path]) => location.pathname.startsWith(path) && path !== '/')?.[1] ||
-    'GovCRM Brasil';
+    'CRM HUG';
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
