@@ -39,9 +39,7 @@ export default function TarefaForm() {
     const params = new URLSearchParams(location.search);
     const opId = params.get('oportunidade_id');
     const loadOps = user
-      ? (isAdmin()
-          ? base44.entities.Oportunidade.list()
-          : base44.entities.Oportunidade.filter({ created_by: user.email }))
+      ? base44.functions.invoke('getOportunidadesHierarquia', {}).then(res => res.data?.oportunidades || [])
       : Promise.resolve([]);
     loadOps.then(res => setOportunidades(res));
     if (isEdit) {
