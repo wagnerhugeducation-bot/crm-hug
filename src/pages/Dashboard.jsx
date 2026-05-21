@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Target, Filter } from 'lucide-react';
 import PageHeader from '@/components/ui/PageHeader';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import TarefasCalendario from '@/components/dashboard/TarefasCalendario';
 import KanbanBANT from '@/components/dashboard/KanbanBANT';
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const { user, isAdmin: isAdminFn, isGestor: isGestorFn, userProfile } = useAuth();
   const isAdmin = isAdminFn();
   const isGestor = isGestorFn?.() || false;
@@ -90,12 +91,47 @@ export default function Dashboard() {
   const ETAPA_COLORS = ['#f97316', '#3b82f6', '#8b5cf6', '#10b981', '#ef4444'];
 
   const pizzaData = useMemo(() => {
-    return ETAPAS.map((etapa, i) => {
+    const items = ETAPAS.map((etapa, i) => {
       const ops = oportunidades.filter(o => o.etapa_pipeline === etapa);
       const total = ops.reduce((acc, o) => acc + (o.valor_estimado || 0), 0);
       return { name: etapa, value: total, count: ops.length, color: ETAPA_COLORS[i] };
     }).filter(d => d.value > 0);
+    const totalGeral = items.reduce((acc, d) => acc + d.value, 0);
+    return items.map(d => ({ ...d, pct: totalGeral > 0 ? ((d.value / totalGeral) * 100).toFixed(1) : '0' }));
   }, [oportunidades]);
+
+  const CustomTooltip = ({ active, payload }) => {
+    if (!active || !payload?.length) return null;
+    const d = payload[0].payload;
+    return (
+      <div className="bg-card border border-border rounded-lg shadow-lg px-3 py-2 text-xs">
+        <p className="font-semibold text-foreground mb-1">{d.name}</p>
+        <p className="text-muted-foreground">Valor: <span className="text-foreground font-medium">R$ {Number(d.value).toLocaleString('pt-BR')}</span></p>
+        <p className="text-muted-foreground">Oportunidades: <span className="text-foreground font-medium">{d.count}</span></p>
+        <p className="text-muted-foreground">Participação: <span className="text-foreground font-medium">{d.pct}%</span></p>
+      </div>
+    );
+  };
+
+  const CustomLegend = ({ payload }) => (
+    <div className="flex flex-col gap-1 mt-1">
+      {payload?.map((entry) => {
+        const d = pizzaData.find(x => x.name === entry.value);
+        return (
+          <div key={entry.value} className="flex items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
+              <span className="text-foreground">{entry.value}</span>
+            </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <span>{d?.count ?? 0} oport.</span>
+              <span className="font-medium text-foreground">{d?.pct ?? 0}%</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 
   const usuarioLabel = (u) => u.nickname ? `@${u.nickname}` : (u.full_name || u.email);
 
@@ -149,7 +185,7 @@ export default function Dashboard() {
             </div>
             <Link to="/oportunidades" className="text-xs text-primary hover:underline font-medium">Ver todas</Link>
           </div>
-          <div className="px-4 py-4 h-[280px] flex items-center justify-center">
+          <div className="px-4 py-4 h-[320px] flex items-center justify-center">
             {isLoading ? (
               <div className="w-full h-full bg-muted animate-pulse rounded-lg" />
             ) : pizzaData.length === 0 ? (
@@ -159,27 +195,25 @@ export default function Dashboard() {
                 <PieChart>
                   <Pie
                     data={pizzaData}
-                    cx="50%"
+                    cx="40%"
                     cy="50%"
                     innerRadius={55}
                     outerRadius={90}
                     paddingAngle={3}
                     dataKey="value"
+                    cursor="pointer"
+                    onClick={(entry) => navigate(`/oportunidades?etapa=${encodeURIComponent(entry.name)}`)}
                   >
                     {pizzaData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip
-                    formatter={(value, name, props) => [
-                      `R$ ${Number(value).toLocaleString('pt-BR')} (${props.payload.count} oport.)`,
-                      'Valor'
-                    ]}
-                  />
+                  <Tooltip content={<CustomTooltip />} />
                   <Legend
-                    iconType="circle"
-                    iconSize={8}
-                    formatter={(value) => <span className="text-xs">{value}</span>}
+                    layout="vertical"
+                    align="right"
+                    verticalAlign="middle"
+                    content={<CustomLegend />}
                   />
                 </PieChart>
               </ResponsiveContainer>

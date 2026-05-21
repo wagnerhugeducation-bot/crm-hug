@@ -21,7 +21,7 @@ const buildExportFields = (getLabel, orgaos) => [
 { key: 'concorrentes', label: 'Concorrentes' },
 { key: 'notas', label: 'Observações' }];
 
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import BANTGauge from '@/components/bant/BANTGauge';
 import DataTable from '@/components/ui/DataTable';
@@ -38,6 +38,7 @@ const PAGE_SIZE = 10;
 
 export default function OportunidadesList() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isAdmin } = useAuth();
   const { usuarios, getLabel } = useUsuariosMap();
   const [data, setData] = useState([]);
@@ -46,7 +47,8 @@ export default function OportunidadesList() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [filterEtapa, setFilterEtapa] = useState('all');
+  const urlEtapa = new URLSearchParams(location.search).get('etapa') || 'all';
+  const [filterEtapa, setFilterEtapa] = useState(urlEtapa);
   const [filterModalidade, setFilterModalidade] = useState('all');
   const [filterCriador, setFilterCriador] = useState('all');
   const [filterResponsavel, setFilterResponsavel] = useState('all');
@@ -116,23 +118,21 @@ export default function OportunidadesList() {
   const columns = [
   { key: 'nome', label: 'Nome', sortable: true },
   {
-    key: 'orgao_id', label: 'Órgão',
+    key: 'orgao_id', label: 'Órgão', sortable: true,
     render: (v) => <span className="truncate max-w-[160px] block">{orgaos[v] || '—'}</span>
   },
-  { key: 'etapa_pipeline', label: 'Etapa', render: (v) => <StatusBadge value={v} /> },
-  { key: 'status', label: 'Status', render: (v) => <StatusBadge value={v} /> },
+  { key: 'etapa_pipeline', label: 'Etapa', sortable: true, render: (v) => <StatusBadge value={v} /> },
+  { key: 'status', label: 'Status', sortable: true, render: (v) => <StatusBadge value={v} /> },
   {
-    key: 'valor_estimado', label: 'Valor Est.',
+    key: 'valor_estimado', label: 'Valor Est.', sortable: true,
     render: (v) => v ? `R$ ${Number(v).toLocaleString('pt-BR')}` : '—',
-    sortable: true
   },
   {
-    key: 'probabilidade', label: '%',
+    key: 'probabilidade', label: '%', sortable: true,
     render: (v) => v ? `${v}%` : '—'
   },
   {
-    key: 'data_abertura', label: 'Dias Aberta',
-    sortable: true,
+    key: 'data_abertura', label: 'Dias Aberta', sortable: true,
     render: (v) => {
       const d = diasDecorridos(v);
       if (d === null) return <span className="text-muted-foreground">—</span>;
@@ -148,7 +148,7 @@ export default function OportunidadesList() {
     }
   },
   {
-    key: 'created_by', label: 'Criador',
+    key: 'created_by', label: 'Criador', sortable: true,
     render: (v) => <span className="text-xs text-muted-foreground">{getLabel(v)}</span>
   },
   {
