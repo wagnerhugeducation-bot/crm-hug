@@ -11,8 +11,11 @@ import KanbanBANT from '@/components/dashboard/KanbanBANT';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function Dashboard() {
-  const { user, isAdmin: isAdminFn, userProfile } = useAuth();
+  const { user, isAdmin: isAdminFn, isGestor: isGestorFn, userProfile } = useAuth();
   const isAdmin = isAdminFn();
+  const isGestor = isGestorFn?.() || false;
+  const podesFiltrar = isAdmin || isGestor;
+
   const [allOportunidades, setAllOportunidades] = useState([]);
   const [allOrgaos, setAllOrgaos] = useState([]);
   const [allContatos, setAllContatos] = useState([]);
@@ -27,19 +30,24 @@ export default function Dashboard() {
     if (loaded) return;
     setLoaded(true);
     const load = async () => {
-      const [orgaos, contatos, oportunidades, todasTarefas, listaUsuarios, scores] = await Promise.all([
+      // Subordinados para o filtro (admin + gestor via backend function)
+      const subordinadosPromise = podesFiltrar
+        ? base44.functions.invoke('getSubordinados', {}).then(r => r.data?.subordinados || [])
+        : Promise.resolve([]);
+
+      const [orgaos, contatos, oportunidades, todasTarefas, listaSubordinados, scores] = await Promise.all([
         base44.entities.OrgaoPublico.list(),
         base44.entities.Contato.list(),
         base44.entities.Oportunidade.list(),
         base44.entities.Tarefa.list(),
-        isAdmin ? base44.entities.User.list() : Promise.resolve([]),
+        subordinadosPromise,
         base44.entities.ScoreBANT.list(),
       ]);
       setAllOrgaos(orgaos);
       setAllContatos(contatos);
       setAllOportunidades(oportunidades);
       setTarefas(todasTarefas);
-      setUsuarios(listaUsuarios);
+      setUsuarios(listaSubordinados);
       setBantScores(scores);
       setIsLoading(false);
     };
@@ -47,44 +55,53 @@ export default function Dashboard() {
   }, []);
 
   /* ── Filtro ── */
-  // Para admins: '__all__' = todos, '__me__' = próprio usuário, ou email específico
-  // Para não-admins: sempre filtra pelo próprio email
-  const emailFiltro = isAdmin ? filtroUsuario : '__me__';
+  // Para admin/gestor: '__all__' = todos da equipe, '__me__' = próprio, ou email específico
+  // Para outros: sempre '__me__'
+  const emailFiltro = podesFiltrar ? filtroUsuario : '__me__';
+
+  // Retorna lista de emails do filtro atual
+  const emailsAtivos = useMemo(() => {
+    if (emailFiltro === '__all__') return usuarios.map(u => u.email);
+    const email = emailFiltro === '__me__' ? user?.email : emailFiltro;
+    return [email];
+  }, [emailFiltro, usuarios, user]);
 
   const oportunidades = useMemo(() => {
     if (emailFiltro === '__all__') return allOportunidades;
-    const email = emailFiltro === '__me__' ? user?.email : emailFiltro;
     return allOportunidades.filter(
-      (o) => o.responsavel_id === email || o.created_by === email
+      (o) => emailsAtivos.includes(o.responsavel_id) ||
+             emailsAtivos.includes(o.responsavel_gestor_id) ||
+             emailsAtivos.includes(o.created_by)
     );
-  }, [allOportunidades, emailFiltro, user]);
+  }, [allOportunidades, emailFiltro, emailsAtivos]);
 
   const tarefasFiltradas = useMemo(() => {
     if (emailFiltro === '__all__') return tarefas;
-    const email = emailFiltro === '__me__' ? user?.email : emailFiltro;
     return tarefas.filter(
-      (t) => t.responsavel_id === email || t.created_by === email
+      (t) => emailsAtivos.includes(t.responsavel_id) ||
+             emailsAtivos.includes(t.responsavel_gestor_id) ||
+             emailsAtivos.includes(t.created_by)
     );
-  }, [tarefas, emailFiltro, user]);
+  }, [tarefas, emailFiltro, emailsAtivos]);
 
   const recentOps = useMemo(() => oportunidades.slice(0, 5), [oportunidades]);
 
   const stats = useMemo(() => ({
-    orgaos: emailFiltro === '__all__' ? allOrgaos.length : new Set(oportunidades.map(o => o.orgao_id).filter(Boolean)).size,
-    contatos: emailFiltro === '__all__' ? allContatos.length : new Set(allContatos.filter(c => oportunidades.some(o => o.orgao_id === c.orgao_id)).map(c => c.id)).size,
+    orgaos: new Set(oportunidades.map(o => o.orgao_id).filter(Boolean)).size,
+    contatos: new Set(allContatos.filter(c => oportunidades.some(o => o.orgao_id === c.orgao_id)).map(c => c.id)).size,
     oportunidades: oportunidades.length,
     tarefas: tarefasFiltradas.filter(t => t.status === 'Pendente').length,
-  }), [oportunidades, tarefasFiltradas, allOrgaos, allContatos, emailFiltro]);
+  }), [oportunidades, tarefasFiltradas, allContatos]);
 
   const usuarioLabel = (u) => u.nickname ? `@${u.nickname}` : (u.full_name || u.email);
 
   const subtitleLabel = useMemo(() => {
-    if (!isAdmin) return `Olá, ${user?.full_name || user?.email}`;
-    if (filtroUsuario === '__all__') return 'Visão consolidada — todos os usuários';
+    if (!podesFiltrar) return `Olá, ${user?.full_name || user?.email}`;
+    if (filtroUsuario === '__all__') return isAdmin ? 'Visão consolidada — todos os usuários' : 'Visão consolidada — minha equipe';
     if (filtroUsuario === '__me__') return `Minhas atividades`;
     const u = usuarios.find(u => u.email === filtroUsuario);
     return u ? `Atividades de ${usuarioLabel(u)}` : 'Visão geral do CRM';
-  }, [isAdmin, filtroUsuario, usuarios, user]);
+  }, [podesFiltrar, filtroUsuario, usuarios, user, isAdmin]);
 
   return (
     <div className="space-y-6">
@@ -92,7 +109,7 @@ export default function Dashboard() {
         title="Dashboard"
         subtitle={subtitleLabel}
         actions={
-          isAdmin && (
+          podesFiltrar && (
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 text-muted-foreground" />
               <Select value={filtroUsuario} onValueChange={setFiltroUsuario}>
@@ -101,8 +118,8 @@ export default function Dashboard() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__me__">Minhas atividades</SelectItem>
-                  <SelectItem value="__all__">Todos os usuários</SelectItem>
-                  {usuarios.map((u) => (
+                  <SelectItem value="__all__">{isAdmin ? 'Todos os usuários' : 'Toda minha equipe'}</SelectItem>
+                  {usuarios.filter(u => u.email !== user?.email).map((u) => (
                     <SelectItem key={u.email} value={u.email}>
                       {usuarioLabel(u)}
                     </SelectItem>
