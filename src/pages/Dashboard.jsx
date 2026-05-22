@@ -185,32 +185,54 @@ export default function Dashboard() {
             </div>
             <Link to="/oportunidades" className="text-xs text-primary hover:underline font-medium">Ver todas</Link>
           </div>
-          <div className="px-4 py-4 h-[320px] flex items-center justify-center">
+          <div className="px-4 pt-4 pb-2">
             {isLoading ? (
-              <div className="w-full h-full bg-muted animate-pulse rounded-lg" />
+              <div className="w-full h-[280px] bg-muted animate-pulse rounded-lg" />
             ) : pizzaData.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nenhuma oportunidade com valor cadastrado</p>
+              <p className="text-sm text-muted-foreground text-center py-16">Nenhuma oportunidade com valor cadastrado</p>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pizzaData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={55}
-                    outerRadius={90}
-                    paddingAngle={3}
-                    dataKey="value"
-                    cursor="pointer"
-                    onClick={(entry) => navigate(`/oportunidades?etapa=${encodeURIComponent(entry.name)}`)}
-                  >
-                    {pizzaData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<CustomTooltip />} />
-                </PieChart>
-              </ResponsiveContainer>
+              <>
+                <div className="h-[280px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={pizzaData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={65}
+                        outerRadius={105}
+                        paddingAngle={3}
+                        dataKey="value"
+                        cursor="pointer"
+                        onClick={(entry) => navigate(`/oportunidades?etapa=${encodeURIComponent(entry.name)}`)}
+                      >
+                        {pizzaData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                {/* Legenda */}
+                <div className="mt-3 border-t border-border pt-3 space-y-1.5">
+                  <div className="grid grid-cols-4 gap-1 px-1 mb-1">
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase col-span-2">Etapa</span>
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase text-right">Valor</span>
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase text-right">Oport. / %</span>
+                  </div>
+                  {pizzaData.map((d) => (
+                    <div key={d.name} className="grid grid-cols-4 gap-1 items-center px-1 py-0.5 rounded hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => navigate(`/oportunidades?etapa=${encodeURIComponent(d.name)}`)}>
+                      <div className="flex items-center gap-1.5 col-span-2">
+                        <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
+                        <span className="text-xs text-foreground truncate">{d.name}</span>
+                      </div>
+                      <span className="text-xs text-foreground text-right font-medium">R$ {Number(d.value).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</span>
+                      <span className="text-xs text-muted-foreground text-right">{d.count} / <span className="font-semibold text-foreground">{d.pct}%</span></span>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>
