@@ -20,7 +20,7 @@ const defaultForm = {
   orgao_id: '', nome: '', descricao: '', valor_estimado: '',
   status: 'Aberta', etapa_pipeline: 'Prospecção', tipo_licitacao: '',
   numero_edital: '', data_abertura: '', data_fechamento: '',
-  data_entrega_proposta: '', probabilidade: '', concorrentes: '', notas: ''
+  data_entrega_proposta: '', potencial_oportunidade: '', concorrentes: '', notas: ''
 };
 
 const LICITACOES_PADRAO = [
@@ -79,9 +79,8 @@ export default function OportunidadeForm() {
     if (form.valor_estimado && isNaN(Number(form.valor_estimado))) {
       errs.valor_estimado = 'Valor deve ser numérico.';
     }
-    if (form.probabilidade) {
-      const p = Number(form.probabilidade);
-      if (isNaN(p) || p < 0 || p > 100) errs.probabilidade = 'Probabilidade deve ser entre 0 e 100.';
+    if (form.potencial_oportunidade && isNaN(Number(form.potencial_oportunidade))) {
+      errs.potencial_oportunidade = 'Potencial deve ser um valor numérico.';
     }
     if (form.data_abertura && form.data_fechamento && form.data_abertura > form.data_fechamento) {
       errs.data_fechamento = 'Data de fechamento deve ser após a data de abertura.';
@@ -115,7 +114,7 @@ export default function OportunidadeForm() {
       const payload = {
         ...form,
         valor_estimado: form.valor_estimado !== '' ? Number(form.valor_estimado) : null,
-        probabilidade: form.probabilidade !== '' ? Number(form.probabilidade) : null,
+        potencial_oportunidade: form.potencial_oportunidade !== '' ? Number(form.potencial_oportunidade) : null,
       };
       if (!isEdit) {
         payload.created_by_user_id = user?.id;
@@ -242,17 +241,17 @@ export default function OportunidadeForm() {
               <FieldError msg={errors.valor_estimado} />
             </div>
             <div>
-              <Label>Probabilidade de Fechamento (%)</Label>
+              <Label>Potencial da Oportunidade (R$)</Label>
               <Input
                 type="number"
                 min="0"
-                max="100"
-                value={form.probabilidade}
-                onChange={e => set('probabilidade', e.target.value)}
-                placeholder="0 – 100"
-                className={cn("mt-1", errors.probabilidade && "border-destructive focus-visible:ring-destructive")}
+                step="0.01"
+                value={form.potencial_oportunidade}
+                onChange={e => set('potencial_oportunidade', e.target.value)}
+                placeholder="0,00"
+                className={cn("mt-1", errors.potencial_oportunidade && "border-destructive focus-visible:ring-destructive")}
               />
-              <FieldError msg={errors.probabilidade} />
+              <FieldError msg={errors.potencial_oportunidade} />
             </div>
           </div>
         </div>

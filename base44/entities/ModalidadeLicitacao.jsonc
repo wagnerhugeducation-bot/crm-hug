@@ -10,6 +10,10 @@
       "type": "boolean",
       "default": true,
       "description": "Modalidade ativa"
+    },
+    "grau_dificuldade": {
+      "type": "number",
+      "description": "Grau de dificuldade (1=mais dif\u00edcil, 5=mais f\u00e1cil)"
     }
   },
   "required": [

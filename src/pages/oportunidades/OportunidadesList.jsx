@@ -13,7 +13,7 @@ const buildExportFields = (getLabel, orgaos) => [
 { key: 'tipo_licitacao', label: 'Modalidade' },
 { key: 'numero_edital', label: 'Nº Edital' },
 { key: 'valor_estimado', label: 'Valor Estimado' },
-{ key: 'probabilidade', label: 'Probabilidade (%)' },
+{ key: 'potencial_oportunidade', label: 'Potencial da Oportunidade (R$)' },
 { key: 'data_abertura', label: 'Data Abertura' },
 { key: 'data_fechamento', label: 'Previsão Fechamento' },
 { key: 'data_entrega_proposta', label: 'Prazo Proposta' },
@@ -163,8 +163,8 @@ export default function OportunidadesList() {
     render: (v) => v ? `R$ ${Number(v).toLocaleString('pt-BR')}` : '—',
   },
   {
-    key: 'probabilidade', label: '%', sortable: true,
-    render: (v) => v ? `${v}%` : '—'
+    key: 'potencial_oportunidade', label: 'Potencial (R$)', sortable: true,
+    render: (v) => v ? `R$ ${Number(v).toLocaleString('pt-BR')}` : '—'
   },
   {
     key: 'data_abertura', label: 'Dias Aberta', sortable: true,

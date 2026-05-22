@@ -29,6 +29,10 @@
       "type": "number",
       "description": "Valor estimado em reais"
     },
+    "potencial_oportunidade": {
+      "type": "number",
+      "description": "Potencial da oportunidade em reais"
+    },
     "status": {
       "type": "string",
       "enum": [
@@ -106,10 +110,6 @@
     "created_by_user_id": {
       "type": "string",
       "description": "ID do usu\u00e1rio que criou"
-    },
-    "probabilidade": {
-      "type": "number",
-      "description": "Probabilidade de fechamento (%)"
     },
     "concorrentes": {
       "type": "string",
