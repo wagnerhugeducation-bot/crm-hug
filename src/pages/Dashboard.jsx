@@ -6,12 +6,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import TarefasCalendario from '@/components/dashboard/TarefasCalendario';
 import KanbanBANT from '@/components/dashboard/KanbanBANT';
+import MatrizPrioridade from '@/components/dashboard/MatrizPrioridade';
+import { useUsuariosMap } from '@/hooks/useUsuariosMap';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, isAdmin: isAdminFn, isGestor: isGestorFn, userProfile } = useAuth();
+  const { getLabel } = useUsuariosMap();
   const isAdmin = isAdminFn();
   const isGestor = isGestorFn?.() || false;
   const podesFiltrar = isAdmin || isGestor;
@@ -169,6 +172,17 @@ export default function Dashboard() {
             </div>
           )
         }
+      />
+
+      {/* Matriz de Prioridade Comercial */}
+      <MatrizPrioridade
+        oportunidades={oportunidades}
+        bantScores={bantScores}
+        tarefas={tarefas}
+        orgaos={allOrgaos}
+        usuarios={usuarios}
+        getLabel={getLabel}
+        isLoading={isLoading}
       />
 
       {/* Kanban BANT */}
