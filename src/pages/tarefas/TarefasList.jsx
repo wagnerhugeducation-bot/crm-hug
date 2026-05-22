@@ -34,9 +34,10 @@ const PAGE_SIZE = 10;
 
 export default function TarefasList() {
   const { user, isAdmin, isGestor } = useAuth();
-  const { usuarios, getLabel } = useUsuariosMap();
-  const [subordinadosEmails, setSubordinadosEmails] = useState([]);
-  const [subordinadosUsuarios, setSubordinadosUsuarios] = useState([]);
+  const { usuarios: usuariosAdmin, getLabel: getLabelAdmin } = useUsuariosMap();
+  const [usuariosVisiveis, setUsuariosVisiveis] = useState([]);
+  const [usuariosResponsavel, setUsuariosResponsavel] = useState([]);
+  const [usuariosMap, setUsuariosMap] = useState({});
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -51,38 +52,78 @@ export default function TarefasList() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showExport, setShowExport] = useState(false);
 
+  // Retorna nickname ou nome do usuário a partir do mapa local (funciona para todos os perfis)
+  const getLabel = (email) => {
+    if (!email) return '—';
+    const u = usuariosMap[email];
+    if (u) return u.nickname || u.full_name || email;
+    // fallback para admin que usa useUsuariosMap
+    return getLabelAdmin(email);
+  };
+
   const load = async () => {
     if (!user) return;
     setIsLoading(true);
 
     let tarefas = [];
+    let todosUsuarios = [];
+    let responsavelUsuarios = [];
+
     if (isAdmin()) {
-      // Admin: vê tudo
+      // Admin: vê tudo, usa lista completa do useUsuariosMap
       tarefas = await base44.entities.Tarefa.list('-created_date');
-    } else if (isGestor && isGestor()) {
-      // Gestor: carrega subordinados e busca tarefas dele + equipe
+      todosUsuarios = usuariosAdmin;
+      responsavelUsuarios = usuariosAdmin;
+    } else {
+      // Gestor e demais: carrega subordinados via backend
       const res = await base44.functions.invoke('getSubordinados', {});
       const subs = res.data?.subordinados || [];
-      const emails = [...new Set([user.email, ...subs.map(s => s.email)])];
-      setSubordinadosEmails(emails);
-      setSubordinadosUsuarios([{ email: user.email }, ...subs]);
-      tarefas = await base44.entities.Tarefa.list('-created_date');
-      tarefas = tarefas.filter(t =>
-        emails.includes(t.responsavel_id) ||
-        emails.includes(t.responsavel_gestor_id) ||
-        emails.includes(t.created_by)
-      );
-    } else {
-      // Comercial/outros: apenas as tarefas onde é responsável
-      tarefas = await base44.entities.Tarefa.list('-created_date');
-      tarefas = tarefas.filter(t => t.responsavel_id === user.email || t.created_by === user.email);
+      const meUsuario = { email: user.email, full_name: user.full_name, nickname: user.nickname };
+      const equipe = [meUsuario, ...subs];
+      const emailsEquipe = equipe.map(s => s.email);
+
+      // Monta mapa de usuários visíveis para exibição de nicknames
+      const mapa = {};
+      equipe.forEach(u => { mapa[u.email] = u; });
+      setUsuariosMap(mapa);
+
+      if (isGestor && isGestor()) {
+        // Gestor: tarefas da equipe
+        tarefas = await base44.entities.Tarefa.list('-created_date');
+        tarefas = tarefas.filter(t =>
+          emailsEquipe.includes(t.responsavel_id) ||
+          emailsEquipe.includes(t.responsavel_gestor_id) ||
+          emailsEquipe.includes(t.created_by)
+        );
+        todosUsuarios = equipe; // criador: todos da equipe
+        responsavelUsuarios = equipe; // responsável: gestor + subordinados
+      } else {
+        // Comercial/assistente: apenas as próprias tarefas
+        tarefas = await base44.entities.Tarefa.list('-created_date');
+        tarefas = tarefas.filter(t => t.responsavel_id === user.email || t.created_by === user.email);
+        todosUsuarios = equipe; // criador: a equipe toda (para exibir nomes)
+        responsavelUsuarios = [meUsuario]; // responsável: apenas si mesmo
+      }
     }
 
+    setUsuariosVisiveis(todosUsuarios);
+    setUsuariosResponsavel(responsavelUsuarios);
     setData(tarefas);
     setIsLoading(false);
   };
 
   useEffect(() => { load(); }, [user]);
+
+  // Para admin: sincroniza mapa de usuários quando useUsuariosMap carregar
+  useEffect(() => {
+    if (isAdmin && isAdmin() && usuariosAdmin.length > 0) {
+      const mapa = {};
+      usuariosAdmin.forEach(u => { mapa[u.email] = u; });
+      setUsuariosMap(mapa);
+      setUsuariosVisiveis(usuariosAdmin);
+      setUsuariosResponsavel(usuariosAdmin);
+    }
+  }, [usuariosAdmin]);
 
   const filtered = data.filter(d => {
     const matchSearch = [d.titulo, d.tipo].some(f => f?.toLowerCase().includes(search.toLowerCase()));
@@ -197,13 +238,13 @@ export default function TarefasList() {
             title="Vencimento até"
           />
         </div>
-        {(isAdmin() || (isGestor && isGestor())) && usuarios.length > 0 && (
+        {usuariosVisiveis.length > 0 && (
           <>
             <Select value={filterCriador} onValueChange={v => { setFilterCriador(v); setPage(1); }}>
               <SelectTrigger className="w-44"><SelectValue placeholder="Criador" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os Criadores</SelectItem>
-                {usuarios.map(u => (
+                {usuariosVisiveis.map(u => (
                   <SelectItem key={u.email} value={u.email}>{getLabel(u.email)}</SelectItem>
                 ))}
               </SelectContent>
@@ -212,7 +253,7 @@ export default function TarefasList() {
               <SelectTrigger className="w-44"><SelectValue placeholder="Responsável" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos Responsáveis</SelectItem>
-                {(isAdmin() ? usuarios : subordinadosUsuarios).map(u => (
+                {usuariosResponsavel.map(u => (
                   <SelectItem key={u.email} value={u.email}>{getLabel(u.email)}</SelectItem>
                 ))}
               </SelectContent>
