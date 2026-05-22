@@ -36,6 +36,7 @@ export default function TarefasList() {
   const { user, isAdmin, isGestor } = useAuth();
   const { usuarios, getLabel } = useUsuariosMap();
   const [subordinadosEmails, setSubordinadosEmails] = useState([]);
+  const [subordinadosUsuarios, setSubordinadosUsuarios] = useState([]);
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -64,6 +65,7 @@ export default function TarefasList() {
       const subs = res.data?.subordinados || [];
       const emails = [...new Set([user.email, ...subs.map(s => s.email)])];
       setSubordinadosEmails(emails);
+      setSubordinadosUsuarios([{ email: user.email }, ...subs]);
       tarefas = await base44.entities.Tarefa.list('-created_date');
       tarefas = tarefas.filter(t =>
         emails.includes(t.responsavel_id) ||
@@ -120,6 +122,10 @@ export default function TarefasList() {
     { key: 'data_vencimento', label: 'Vencimento', render: v => v ? new Date(v).toLocaleDateString('pt-BR') : '—', sortable: true },
     { key: 'status', label: 'Status', render: v => <StatusBadge value={v} /> },
     { key: 'prioridade', label: 'Prioridade', render: v => <StatusBadge value={v} /> },
+    {
+      key: 'responsavel_id', label: 'Responsável',
+      render: v => <span className="text-xs text-muted-foreground">{getLabel(v)}</span>
+    },
     {
       key: 'created_by', label: 'Criador',
       render: v => <span className="text-xs text-muted-foreground">{getLabel(v)}</span>
@@ -206,7 +212,7 @@ export default function TarefasList() {
               <SelectTrigger className="w-44"><SelectValue placeholder="Responsável" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos Responsáveis</SelectItem>
-                {usuarios.map(u => (
+                {(isAdmin() ? usuarios : subordinadosUsuarios).map(u => (
                   <SelectItem key={u.email} value={u.email}>{getLabel(u.email)}</SelectItem>
                 ))}
               </SelectContent>
