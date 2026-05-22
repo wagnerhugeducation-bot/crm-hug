@@ -44,6 +44,7 @@ export default function OportunidadesList() {
   const [data, setData] = useState([]);
   const [orgaos, setOrgaos] = useState({});
   const [bantMap, setBantMap] = useState({});
+  const [ultimaTarefaMap, setUltimaTarefaMap] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -67,11 +68,12 @@ export default function OportunidadesList() {
   const load = async () => {
     if (!user) return;
     setIsLoading(true);
-    const [ops, orgList, bantList, modList] = await Promise.all([
+    const [ops, orgList, bantList, modList, tarefasList] = await Promise.all([
     base44.entities.Oportunidade.list('-created_date'),
     base44.entities.OrgaoPublico.list(),
     base44.entities.ScoreBANT.list(),
-    base44.entities.ModalidadeLicitacao.list()]
+    base44.entities.ModalidadeLicitacao.list(),
+    base44.entities.Tarefa.filter({ status: 'Concluída' })]
     );
     setModalidades([...LICITACOES_PADRAO, ...modList.map((m) => m.nome)]);
     const map = {};
@@ -80,6 +82,16 @@ export default function OportunidadesList() {
     const bm = {};
     bantList.forEach((b) => {bm[b.oportunidade_id] = b;});
     setBantMap(bm);
+    // Mapa: oportunidade_id → data da última tarefa concluída
+    const tm = {};
+    tarefasList.forEach((t) => {
+      if (!t.oportunidade_id) return;
+      const dataConc = t.concluida_em || t.updated_date;
+      if (!tm[t.oportunidade_id] || new Date(dataConc) > new Date(tm[t.oportunidade_id])) {
+        tm[t.oportunidade_id] = dataConc;
+      }
+    });
+    setUltimaTarefaMap(tm);
     setData(ops);
     setIsLoading(false);
   };
@@ -117,8 +129,28 @@ export default function OportunidadesList() {
     return Math.floor(diff / (1000 * 60 * 60 * 24));
   };
 
+  const getAtividadeDot = (oportunidadeId) => {
+    const ultima = ultimaTarefaMap[oportunidadeId];
+    if (!ultima) return { color: 'bg-red-500', title: 'Sem tarefas concluídas' };
+    const dias = Math.floor((Date.now() - new Date(ultima).getTime()) / (1000 * 60 * 60 * 24));
+    if (dias <= 15) return { color: 'bg-green-500', title: `Última tarefa há ${dias} dia(s)` };
+    if (dias <= 30) return { color: 'bg-yellow-400', title: `Última tarefa há ${dias} dia(s)` };
+    return { color: 'bg-red-500', title: `Última tarefa há ${dias} dia(s)` };
+  };
+
   const columns = [
-  { key: 'nome', label: 'Nome', sortable: true },
+  {
+    key: 'nome', label: 'Nome', sortable: true,
+    render: (v, row) => {
+      const dot = getAtividadeDot(row.id);
+      return (
+        <div className="flex items-center gap-2">
+          <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${dot.color}`} title={dot.title} />
+          <span>{v}</span>
+        </div>
+      );
+    }
+  },
   { key: 'objeto_contratado', label: 'Objeto', sortable: true, render: (v) => v ? <span className="text-xs">{v}</span> : <span className="text-muted-foreground">—</span> },
   {
     key: 'orgao_id', label: 'Órgão', sortable: true,
