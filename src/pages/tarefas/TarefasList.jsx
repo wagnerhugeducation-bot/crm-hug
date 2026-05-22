@@ -33,8 +33,9 @@ import { toast } from 'sonner';
 const PAGE_SIZE = 10;
 
 export default function TarefasList() {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isGestor } = useAuth();
   const { usuarios, getLabel } = useUsuariosMap();
+  const [subordinadosEmails, setSubordinadosEmails] = useState([]);
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -52,10 +53,30 @@ export default function TarefasList() {
   const load = async () => {
     if (!user) return;
     setIsLoading(true);
-    const res = isAdmin()
-      ? await base44.entities.Tarefa.list('-created_date')
-      : await base44.entities.Tarefa.filter({ created_by: user.email }, '-created_date');
-    setData(res);
+
+    let tarefas = [];
+    if (isAdmin()) {
+      // Admin: vê tudo
+      tarefas = await base44.entities.Tarefa.list('-created_date');
+    } else if (isGestor && isGestor()) {
+      // Gestor: carrega subordinados e busca tarefas dele + equipe
+      const res = await base44.functions.invoke('getSubordinados', {});
+      const subs = res.data?.subordinados || [];
+      const emails = [...new Set([user.email, ...subs.map(s => s.email)])];
+      setSubordinadosEmails(emails);
+      tarefas = await base44.entities.Tarefa.list('-created_date');
+      tarefas = tarefas.filter(t =>
+        emails.includes(t.responsavel_id) ||
+        emails.includes(t.responsavel_gestor_id) ||
+        emails.includes(t.created_by)
+      );
+    } else {
+      // Comercial/outros: apenas as tarefas onde é responsável
+      tarefas = await base44.entities.Tarefa.list('-created_date');
+      tarefas = tarefas.filter(t => t.responsavel_id === user.email || t.created_by === user.email);
+    }
+
+    setData(tarefas);
     setIsLoading(false);
   };
 
@@ -170,7 +191,7 @@ export default function TarefasList() {
             title="Vencimento até"
           />
         </div>
-        {isAdmin() && usuarios.length > 0 && (
+        {(isAdmin() || (isGestor && isGestor())) && usuarios.length > 0 && (
           <>
             <Select value={filterCriador} onValueChange={v => { setFilterCriador(v); setPage(1); }}>
               <SelectTrigger className="w-44"><SelectValue placeholder="Criador" /></SelectTrigger>
