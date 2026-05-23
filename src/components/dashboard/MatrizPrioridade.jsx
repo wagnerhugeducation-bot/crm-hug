@@ -418,7 +418,7 @@ export default function MatrizPrioridade({ oportunidades, bantScores, tarefas, o
       </div>
 
       {/* Legenda dos Quadrantes */}
-      <div className="border-t border-border px-5 py-4 space-y-2">
+      <div className="border-t border-border px-5 py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 items-start">
         {Object.values(resumoQuadrantes.quadrantes).map((q) => {
           const pct = resumoQuadrantes.totalValor > 0
             ? Math.round((q.valor / resumoQuadrantes.totalValor) * 100)
