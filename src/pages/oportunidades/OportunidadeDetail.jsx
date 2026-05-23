@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Pencil, CheckSquare, FileText, Star, Clock, CheckCircle2 } from 'lucide-react';
 import BANTGauge from '@/components/bant/BANTGauge';
@@ -9,8 +9,8 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import LinhaDoTempo from '@/components/oportunidades/LinhaDoTempo';
 import { useUsuariosMap } from '@/hooks/useUsuariosMap';
 
-// Tabela com altura fixa (5 linhas) e scroll interno
-function ScrollableTable({ columns, data, emptyMessage }) {
+// Tabela com altura fixa (~5 linhas) e scroll interno, com linhas clicáveis
+function ScrollableTable({ columns, data, emptyMessage, onRowClick }) {
   if (!data || data.length === 0) {
     return <p className="text-xs text-muted-foreground text-center py-6">{emptyMessage}</p>;
   }
@@ -31,7 +31,11 @@ function ScrollableTable({ columns, data, emptyMessage }) {
         <table className="w-full text-sm">
           <tbody className="divide-y divide-border">
             {data.map((row, i) => (
-              <tr key={row.id || i} className="hover:bg-muted/30 transition-colors">
+              <tr
+                key={row.id || i}
+                onClick={() => onRowClick && onRowClick(row)}
+                className={`transition-colors ${onRowClick ? 'cursor-pointer hover:bg-primary/5' : 'hover:bg-muted/30'}`}
+              >
                 {columns.map(col => (
                   <td key={col.key} className="px-4 py-2.5 text-foreground">
                     {col.render ? col.render(row[col.key], row) : (row[col.key] ?? '—')}
@@ -91,6 +95,7 @@ function BANTScore({ bant }) {
 
 export default function OportunidadeDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { getLabel } = useUsuariosMap();
   const [op, setOp] = useState(null);
   const [orgao, setOrgao] = useState(null);
@@ -196,6 +201,7 @@ export default function OportunidadeDetail() {
                 ]}
                 data={tarefasAtivas}
                 emptyMessage="Nenhuma tarefa pendente."
+                onRowClick={row => navigate(`/tarefas/${row.id}/editar?origem=/oportunidades/${id}`)}
               />
             </div>
           );
@@ -224,6 +230,7 @@ export default function OportunidadeDetail() {
                 ]}
                 data={concluidas}
                 emptyMessage="Nenhuma tarefa concluída ainda."
+                onRowClick={row => navigate(`/tarefas/${row.id}/editar?origem=/oportunidades/${id}`)}
               />
             </div>
           );
@@ -245,10 +252,15 @@ export default function OportunidadeDetail() {
               { key: 'nome', label: 'Nome' },
               { key: 'tipo', label: 'Tipo' },
               { key: 'validade', label: 'Validade', render: v => v ? new Date(v).toLocaleDateString('pt-BR') : '—' },
-              { key: 'arquivo_url', label: 'Arquivo', render: v => v ? <a href={v} target="_blank" rel="noreferrer" className="text-primary hover:underline text-xs">Abrir</a> : '—' },
+              { key: 'arquivo_url', label: 'Arquivo', render: (v, row) => (
+                <div className="flex items-center gap-2">
+                  {v ? <a href={v} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="text-primary hover:underline text-xs">Abrir</a> : '—'}
+                </div>
+              )},
             ]}
             data={documentos}
             emptyMessage="Nenhum documento vinculado."
+            onRowClick={row => navigate(`/documentos/${row.id}/editar?origem=/oportunidades/${id}`)}
           />
         </div>
 
@@ -258,7 +270,7 @@ export default function OportunidadeDetail() {
             <Clock className="w-4 h-4 text-primary" />
             <h3 className="text-sm font-semibold">Histórico de Atividades</h3>
           </div>
-          <div className="p-5">
+          <div className="p-5 overflow-y-auto" style={{ maxHeight: '380px' }}>
             <LinhaDoTempo oportunidadeId={id} />
           </div>
         </div>

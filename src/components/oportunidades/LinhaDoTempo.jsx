@@ -95,4 +95,6 @@ export default function LinhaDoTempo({ oportunidadeId }) {
       ))}
     </div>
   );
+
+  // Note: scroll is controlled by the parent container in OportunidadeDetail
 }

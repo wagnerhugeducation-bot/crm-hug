@@ -35,8 +35,10 @@ export default function DocumentoForm() {
   const [isUploading, setIsUploading] = useState(false);
   const [isFetching, setIsFetching] = useState(isEdit);
 
+  const params = new URLSearchParams(location.search);
+  const origemUrl = params.get('origem') || '/documentos';
+
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
     const opId = params.get('oportunidade_id');
     base44.entities.Oportunidade.list().then(res => setOportunidades(res));
     if (isEdit) {
@@ -83,7 +85,7 @@ export default function DocumentoForm() {
         await base44.entities.Documento.create(payload);
         toast.success('Documento salvo.');
       }
-      navigate('/documentos');
+      navigate(origemUrl);
     } finally {
       setIsLoading(false);
     }
@@ -95,7 +97,7 @@ export default function DocumentoForm() {
     <div>
       <PageHeader
         title={isEdit ? 'Editar Documento' : 'Novo Documento'}
-        actions={<Link to="/documentos"><Button variant="outline" className="gap-2"><ArrowLeft className="w-4 h-4" /> Voltar</Button></Link>}
+        actions={<Button variant="outline" className="gap-2" onClick={() => navigate(origemUrl)}><ArrowLeft className="w-4 h-4" /> Voltar</Button>}
       />
       <form onSubmit={handleSubmit} className="max-w-xl">
         <div className="bg-card rounded-xl border border-border p-6 space-y-4">
@@ -165,7 +167,7 @@ export default function DocumentoForm() {
           </div>
         )}
         <div className="flex justify-end gap-3 mt-4">
-          <Link to="/documentos"><Button variant="outline" type="button">Cancelar</Button></Link>
+          <Button variant="outline" type="button" onClick={() => navigate(origemUrl)}>Cancelar</Button>
           <Button type="submit" disabled={isLoading || isUploading} className="gap-2">
             <Save className="w-4 h-4" />
             {isLoading ? 'Salvando...' : 'Salvar Documento'}

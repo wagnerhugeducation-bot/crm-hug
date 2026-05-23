@@ -35,8 +35,10 @@ export default function TarefaForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(isEdit);
 
+  const params = new URLSearchParams(location.search);
+  const origemUrl = params.get('origem') || '/tarefas';
+
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
     const opId = params.get('oportunidade_id');
     const loadOps = user
       ? base44.functions.invoke('getOportunidadesHierarquia', {}).then(res => res.data?.oportunidades || [])
@@ -85,7 +87,7 @@ export default function TarefaForm() {
       await base44.entities.Tarefa.create(payload);
       toast.success('Tarefa criada.');
     }
-    navigate('/tarefas');
+    navigate(origemUrl);
   };
 
   if (isFetching) return <div className="flex justify-center py-12"><div className="w-7 h-7 border-4 border-primary/30 border-t-primary rounded-full animate-spin" /></div>;
@@ -94,7 +96,7 @@ export default function TarefaForm() {
     <div>
       <PageHeader
         title={isEdit ? 'Editar Tarefa' : 'Nova Tarefa'}
-        actions={<Link to="/tarefas"><Button variant="outline" className="gap-2"><ArrowLeft className="w-4 h-4" /> Voltar</Button></Link>}
+        actions={<Button variant="outline" className="gap-2" onClick={() => navigate(origemUrl)}><ArrowLeft className="w-4 h-4" /> Voltar</Button>}
       />
       <form onSubmit={handleSubmit} className="max-w-xl">
         <div className="bg-card rounded-xl border border-border p-6 space-y-4">
@@ -174,7 +176,7 @@ export default function TarefaForm() {
           )}
           </div>
         <div className="flex justify-end gap-3 mt-4">
-          <Link to="/tarefas"><Button variant="outline" type="button">Cancelar</Button></Link>
+          <Button variant="outline" type="button" onClick={() => navigate(origemUrl)}>Cancelar</Button>
           <Button type="submit" disabled={isLoading} className="gap-2">
             <Save className="w-4 h-4" />
             {isLoading ? 'Salvando...' : 'Salvar Tarefa'}
