@@ -222,7 +222,7 @@ export default function OportunidadeDetail() {
                 columns={[
                   { key: 'titulo', label: 'Título' },
                   { key: 'tipo', label: 'Tipo' },
-                  { key: 'resultado', label: 'Resultado', render: v => v ? <span className="text-xs text-muted-foreground">{v}</span> : '—' },
+                  { key: 'resultado', label: 'Resultado', render: v => v ? <div className="text-xs text-muted-foreground overflow-y-auto" style={{ maxHeight: '5.5rem', lineHeight: '1.375rem' }}>{v}</div> : '—' },
                   { key: 'concluida_em', label: 'Concluída em', render: (v, row) => {
                     const dt = v || row.updated_date;
                     return dt ? new Date(dt).toLocaleDateString('pt-BR') : '—';
