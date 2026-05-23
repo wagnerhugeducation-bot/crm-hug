@@ -93,12 +93,25 @@ export default function Dashboard() {
   const ETAPAS = ['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento'];
   const ETAPA_COLORS = ['#f97316', '#3b82f6', '#8b5cf6', '#10b981', '#ef4444'];
 
+  const OBJETOS = ['Vivências', 'Met.completa com PcD', 'Met.Tradicional', 'Met.Inclusiva', 'Prog.Especiais'];
+  const OBJETO_COLORS = ['#06b6d4', '#8b5cf6', '#f59e0b', '#10b981', '#ec4899'];
+
   const pizzaData = useMemo(() => {
     const items = ETAPAS.map((etapa, i) => {
       const ops = oportunidades.filter(o => o.etapa_pipeline === etapa);
       const total = ops.reduce((acc, o) => acc + (o.valor_estimado || 0), 0);
       return { name: etapa, value: total, count: ops.length, color: ETAPA_COLORS[i] };
     }).filter(d => d.value > 0);
+    const totalGeral = items.reduce((acc, d) => acc + d.value, 0);
+    return items.map(d => ({ ...d, pct: totalGeral > 0 ? ((d.value / totalGeral) * 100).toFixed(1) : '0' }));
+  }, [oportunidades]);
+
+  const pizzaObjetoData = useMemo(() => {
+    const items = OBJETOS.map((obj, i) => {
+      const ops = oportunidades.filter(o => o.objeto_contratado === obj);
+      const total = ops.reduce((acc, o) => acc + (o.valor_estimado || 0), 0);
+      return { name: obj, value: total, count: ops.length, color: OBJETO_COLORS[i] };
+    }).filter(d => d.count > 0);
     const totalGeral = items.reduce((acc, d) => acc + d.value, 0);
     return items.map(d => ({ ...d, pct: totalGeral > 0 ? ((d.value / totalGeral) * 100).toFixed(1) : '0' }));
   }, [oportunidades]);
@@ -115,26 +128,6 @@ export default function Dashboard() {
       </div>
     );
   };
-
-  const CustomLegend = ({ payload }) => (
-    <div className="flex flex-col gap-1 mt-1">
-      {payload?.map((entry) => {
-        const d = pizzaData.find(x => x.name === entry.value);
-        return (
-          <div key={entry.value} className="flex items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
-              <span className="text-foreground">{entry.value}</span>
-            </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <span>{d?.count ?? 0} oport.</span>
-              <span className="font-medium text-foreground">{d?.pct ?? 0}%</span>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
 
   const usuarioLabel = (u) => u.nickname ? `@${u.nickname}` : (u.full_name || u.email);
 
@@ -188,9 +181,9 @@ export default function Dashboard() {
       {/* Kanban BANT */}
       <KanbanBANT oportunidades={oportunidades} bantScores={bantScores} isLoading={isLoading} />
 
-      {/* Main content */}
+      {/* Gráficos de Pizza */}
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Oportunidades por Etapa - Gráfico Pizza */}
+        {/* Valor por Etapa do Pipeline */}
         <div className="bg-card rounded-xl border border-border">
           <div className="flex items-center justify-between px-5 py-4 border-b border-border">
             <div className="flex items-center gap-2">
@@ -209,26 +202,13 @@ export default function Dashboard() {
                 <div className="h-[280px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie
-                        data={pizzaData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={65}
-                        outerRadius={105}
-                        paddingAngle={3}
-                        dataKey="value"
-                        cursor="pointer"
-                        onClick={(entry) => navigate(`/oportunidades?etapa=${encodeURIComponent(entry.name)}`)}
-                      >
-                        {pizzaData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
+                      <Pie data={pizzaData} cx="50%" cy="50%" innerRadius={65} outerRadius={105} paddingAngle={3} dataKey="value" cursor="pointer" onClick={(entry) => navigate(`/oportunidades?etapa=${encodeURIComponent(entry.name)}`)}>
+                        {pizzaData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}
                       </Pie>
                       <Tooltip content={<CustomTooltip />} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                {/* Legenda */}
                 <div className="mt-3 border-t border-border pt-3 space-y-1.5">
                   <div className="grid grid-cols-4 gap-1 px-1 mb-1">
                     <span className="text-[10px] font-semibold text-muted-foreground uppercase col-span-2">Etapa</span>
@@ -251,16 +231,64 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Calendário de Tarefas */}
-        <TarefasCalendario
-          tarefas={tarefasFiltradas}
-          isAdmin={false}
-          usuarios={usuarios}
-          currentUserEmail={user?.email}
-          isLoading={isLoading}
-          filtroExterno={emailFiltro}
-        />
+        {/* Valor por Objeto Contratado */}
+        <div className="bg-card rounded-xl border border-border">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+            <div className="flex items-center gap-2">
+              <Target className="w-4 h-4 text-primary" />
+              <h2 className="text-sm font-semibold text-foreground">Valor por Objeto Contratado</h2>
+            </div>
+            <Link to="/oportunidades" className="text-xs text-primary hover:underline font-medium">Ver todas</Link>
+          </div>
+          <div className="px-4 pt-4 pb-2">
+            {isLoading ? (
+              <div className="w-full h-[280px] bg-muted animate-pulse rounded-lg" />
+            ) : pizzaObjetoData.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-16">Nenhuma oportunidade com objeto contratado cadastrado</p>
+            ) : (
+              <>
+                <div className="h-[280px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={pizzaObjetoData} cx="50%" cy="50%" innerRadius={65} outerRadius={105} paddingAngle={3} dataKey="value" cursor="pointer">
+                        {pizzaObjetoData.map((entry, index) => (<Cell key={`cell-obj-${index}`} fill={entry.color} />))}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-3 border-t border-border pt-3 space-y-1.5">
+                  <div className="grid grid-cols-4 gap-1 px-1 mb-1">
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase col-span-2">Objeto</span>
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase text-right">Valor</span>
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase text-right">Oport. / %</span>
+                  </div>
+                  {pizzaObjetoData.map((d) => (
+                    <div key={d.name} className="grid grid-cols-4 gap-1 items-center px-1 py-0.5 rounded hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-1.5 col-span-2">
+                        <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
+                        <span className="text-xs text-foreground truncate">{d.name}</span>
+                      </div>
+                      <span className="text-xs text-foreground text-right font-medium">R$ {Number(d.value).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</span>
+                      <span className="text-xs text-muted-foreground text-right">{d.count} / <span className="font-semibold text-foreground">{d.pct}%</span></span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* Calendário de Tarefas */}
+      <TarefasCalendario
+        tarefas={tarefasFiltradas}
+        isAdmin={false}
+        usuarios={usuarios}
+        currentUserEmail={user?.email}
+        isLoading={isLoading}
+        filtroExterno={emailFiltro}
+      />
     </div>
   );
 }

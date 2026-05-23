@@ -103,6 +103,23 @@ export default function OportunidadeDetail() {
   const [documentos, setDocumentos] = useState([]);
   const [bant, setBant] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [sortAtivas, setSortAtivas] = useState({ key: null, dir: 'asc' });
+  const [sortConcluidas, setSortConcluidas] = useState({ key: null, dir: 'asc' });
+
+  const toggleSort = (current, key, setter) => {
+    if (current.key === key) setter({ key, dir: current.dir === 'asc' ? 'desc' : 'asc' });
+    else setter({ key, dir: 'asc' });
+  };
+
+  const sortData = (data, { key, dir }) => {
+    if (!key) return data;
+    return [...data].sort((a, b) => {
+      const va = a[key] ?? '';
+      const vb = b[key] ?? '';
+      const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+      return dir === 'asc' ? cmp : -cmp;
+    });
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -179,7 +196,11 @@ export default function OportunidadeDetail() {
         <div className="lg:col-span-2 space-y-5">
         {/* Tarefas pendentes/em andamento */}
         {(() => {
-          const tarefasAtivas = tarefas.filter(t => t.status !== 'Concluída' && t.status !== 'Cancelada');
+          const tarefasAtivas = sortData(tarefas.filter(t => t.status !== 'Concluída' && t.status !== 'Cancelada'), sortAtivas);
+          const SortIcon = ({ col }) => {
+            if (sortAtivas.key !== col) return <span className="text-muted-foreground/40 ml-1">↕</span>;
+            return <span className="text-primary ml-1">{sortAtivas.dir === 'asc' ? '↑' : '↓'}</span>;
+          };
           return (
             <div className="bg-card rounded-xl border border-border">
               <div className="flex items-center justify-between px-5 py-4 border-b border-border">
@@ -194,9 +215,9 @@ export default function OportunidadeDetail() {
               <ScrollableTable
                 columns={[
                   { key: 'titulo', label: 'Título' },
-                  { key: 'tipo', label: 'Tipo' },
-                  { key: 'data_vencimento', label: 'Vencimento', render: v => v ? new Date(v).toLocaleDateString('pt-BR') : '—' },
-                  { key: 'status', label: 'Status', render: v => <StatusBadge value={v} /> },
+                  { key: 'tipo', label: <span className="cursor-pointer select-none" onClick={() => toggleSort(sortAtivas, 'tipo', setSortAtivas)}>Tipo<SortIcon col="tipo" /></span> },
+                  { key: 'data_vencimento', label: <span className="cursor-pointer select-none" onClick={() => toggleSort(sortAtivas, 'data_vencimento', setSortAtivas)}>Vencimento<SortIcon col="data_vencimento" /></span>, render: v => v ? new Date(v).toLocaleDateString('pt-BR') : '—' },
+                  { key: 'status', label: <span className="cursor-pointer select-none" onClick={() => toggleSort(sortAtivas, 'status', setSortAtivas)}>Status<SortIcon col="status" /></span>, render: v => <StatusBadge value={v} /> },
                   { key: 'prioridade', label: 'Prioridade', render: v => <StatusBadge value={v} /> },
                 ]}
                 data={tarefasAtivas}
@@ -209,9 +230,14 @@ export default function OportunidadeDetail() {
 
         {/* Tarefas Concluídas */}
         {(() => {
-          const concluidas = tarefas
-            .filter(t => t.status === 'Concluída')
-            .sort((a, b) => new Date(b.concluida_em || b.updated_date) - new Date(a.concluida_em || a.updated_date));
+          const base = tarefas.filter(t => t.status === 'Concluída');
+          const concluidas = sortConcluidas.key
+            ? sortData(base, sortConcluidas)
+            : [...base].sort((a, b) => new Date(b.concluida_em || b.updated_date) - new Date(a.concluida_em || a.updated_date));
+          const SortIcon = ({ col }) => {
+            if (sortConcluidas.key !== col) return <span className="text-muted-foreground/40 ml-1">↕</span>;
+            return <span className="text-primary ml-1">{sortConcluidas.dir === 'asc' ? '↑' : '↓'}</span>;
+          };
           return (
             <div className="bg-card rounded-xl border border-border">
               <div className="flex items-center gap-2 px-5 py-4 border-b border-border">
@@ -221,9 +247,9 @@ export default function OportunidadeDetail() {
               <ScrollableTable
                 columns={[
                   { key: 'titulo', label: 'Título' },
-                  { key: 'tipo', label: 'Tipo' },
+                  { key: 'tipo', label: <span className="cursor-pointer select-none" onClick={() => toggleSort(sortConcluidas, 'tipo', setSortConcluidas)}>Tipo<SortIcon col="tipo" /></span> },
                   { key: 'resultado', label: 'Resultado', render: v => v ? <div className="text-xs text-muted-foreground overflow-y-auto" style={{ maxHeight: '5.5rem', lineHeight: '1.375rem' }}>{v}</div> : '—' },
-                  { key: 'concluida_em', label: 'Concluída em', render: (v, row) => {
+                  { key: 'concluida_em', label: <span className="cursor-pointer select-none" onClick={() => toggleSort(sortConcluidas, 'concluida_em', setSortConcluidas)}>Concluída em<SortIcon col="concluida_em" /></span>, render: (v, row) => {
                     const dt = v || row.updated_date;
                     return dt ? new Date(dt).toLocaleDateString('pt-BR') : '—';
                   }},
