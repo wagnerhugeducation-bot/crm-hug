@@ -26,8 +26,8 @@ const DOCENTES_SEGMENTOS = [
   { key: 'doc_bercario', label: 'Berçário' },
   { key: 'doc_etapa1', label: 'Etapa I' },
   { key: 'doc_etapa2', label: 'Etapa II' },
-  { key: 'doc_ef1', label: 'Ensino Fundamental 1' },
-  { key: 'doc_ef2', label: 'Ensino Fundamental 2' },
+  { key: 'doc_ef1', label: 'Fundamental 1' },
+  { key: 'doc_ef2', label: 'Fundamental 2' },
   { key: 'doc_em', label: 'Ensino Médio' },
 ];
 
