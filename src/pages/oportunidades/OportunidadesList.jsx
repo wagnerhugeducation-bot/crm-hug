@@ -208,8 +208,18 @@ export default function OportunidadesList() {
   }];
 
 
+  const fromDashboard = location.state?.from === '/';
+
   return (
     <div>
+      {fromDashboard && (
+        <button
+          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground mb-3 transition-colors"
+          onClick={() => navigate('/')}
+        >
+          ← Voltar ao Dashboard
+        </button>
+      )}
       <PageHeader
         title="Oportunidades"
         subtitle={`${data.length} oportunidade(s) cadastrada(s)`}

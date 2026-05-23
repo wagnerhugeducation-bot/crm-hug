@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Pencil, CheckSquare, FileText, Star, Clock, CheckCircle2 } from 'lucide-react';
 import BANTGauge from '@/components/bant/BANTGauge';
@@ -96,7 +96,9 @@ function BANTScore({ bant }) {
 export default function OportunidadeDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { getLabel } = useUsuariosMap();
+  const fromDashboard = location.state?.from === '/';
   const [op, setOp] = useState(null);
   const [orgao, setOrgao] = useState(null);
   const [tarefas, setTarefas] = useState([]);
@@ -153,7 +155,9 @@ export default function OportunidadeDetail() {
         subtitle={orgao?.nome}
         actions={
           <div className="flex gap-2">
-            <Link to="/oportunidades"><Button variant="outline" className="gap-2"><ArrowLeft className="w-4 h-4" /> Voltar</Button></Link>
+            <Button variant="outline" className="gap-2" onClick={() => navigate(fromDashboard ? '/' : '/oportunidades')}>
+              <ArrowLeft className="w-4 h-4" /> Voltar
+            </Button>
             <Link to={`/oportunidades/${id}/editar`}><Button className="gap-2"><Pencil className="w-4 h-4" /> Editar</Button></Link>
           </div>
         }

@@ -1,9 +1,9 @@
 import { useMemo, useState, useCallback } from 'react';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
-import { TrendingUp, Filter, X, ExternalLink, HelpCircle } from 'lucide-react';
+import { TrendingUp, Filter, X, ExternalLink, HelpCircle, ChevronDown, ChevronRight } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const LS_KEY = 'modalidades_padrao_graus';
 
@@ -123,11 +123,13 @@ function PainelDetalhe({ ponto, orgaosMap, getLabel, tarefasDetalheMap, onClose 
 }
 
 export default function MatrizPrioridade({ oportunidades, bantScores, tarefas, orgaos, usuarios, getLabel, isLoading }) {
+  const navigate = useNavigate();
   const [filtroResponsavel, setFiltroResponsavel] = useState('all');
   const [filtroEtapa, setFiltroEtapa] = useState('all');
   const [filtroModalidade, setFiltroModalidade] = useState('all');
   const [filtroSaude, setFiltroSaude] = useState('all');
   const [pontoSelecionado, setPontoSelecionado] = useState(null);
+  const [quadranteSelecionado, setQuadranteSelecionado] = useState(null);
 
   const grausPadrao = useMemo(() => {
     try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch { return {}; }
@@ -208,10 +210,10 @@ export default function MatrizPrioridade({ oportunidades, bantScores, tarefas, o
 
   const resumoQuadrantes = useMemo(() => {
     const quadrantes = {
-      prioridade_maxima: { label: '🔥 Prioridade Máxima', count: 0, valor: 0, color: 'text-orange-600', bg: 'bg-orange-50 border-orange-200' },
-      grande_potencial: { label: '⚠️ Grande Potencial', count: 0, valor: 0, color: 'text-yellow-700', bg: 'bg-yellow-50 border-yellow-200' },
-      ganhos_rapidos: { label: '⚡ Ganhos Rápidos', count: 0, valor: 0, color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200' },
-      baixa_prioridade: { label: '⏳ Baixa Prioridade', count: 0, valor: 0, color: 'text-muted-foreground', bg: 'bg-muted/40 border-border' },
+      prioridade_maxima: { key: 'prioridade_maxima', label: '🔥 Prioridade Máxima', count: 0, valor: 0, color: 'text-orange-600', bg: 'bg-orange-50 border-orange-200', pontos: [] },
+      grande_potencial: { key: 'grande_potencial', label: '⚠️ Grande Potencial', count: 0, valor: 0, color: 'text-yellow-700', bg: 'bg-yellow-50 border-yellow-200', pontos: [] },
+      ganhos_rapidos: { key: 'ganhos_rapidos', label: '⚡ Ganhos Rápidos', count: 0, valor: 0, color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200', pontos: [] },
+      baixa_prioridade: { key: 'baixa_prioridade', label: '⏳ Baixa Prioridade', count: 0, valor: 0, color: 'text-muted-foreground', bg: 'bg-muted/40 border-border', pontos: [] },
     };
     pontosFiltrados.forEach(p => {
       const altaMaturidade = p.x >= 50;
@@ -222,6 +224,7 @@ export default function MatrizPrioridade({ oportunidades, bantScores, tarefas, o
         : 'baixa_prioridade';
       quadrantes[key].count += 1;
       quadrantes[key].valor += p.valor_estimado || 0;
+      quadrantes[key].pontos.push(p);
     });
     const totalValor = Object.values(quadrantes).reduce((s, q) => s + q.valor, 0);
     return { quadrantes, totalValor };
@@ -415,32 +418,74 @@ export default function MatrizPrioridade({ oportunidades, bantScores, tarefas, o
       </div>
 
       {/* Legenda dos Quadrantes */}
-      <div className="border-t border-border px-5 py-4">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {Object.values(resumoQuadrantes.quadrantes).map((q) => {
-            const pct = resumoQuadrantes.totalValor > 0
-              ? Math.round((q.valor / resumoQuadrantes.totalValor) * 100)
-              : 0;
-            return (
-              <div key={q.label} className={`rounded-lg border px-4 py-3 ${q.bg}`}>
-                <p className={`text-xs font-semibold mb-2 ${q.color}`}>{q.label}</p>
-                <div className="flex items-end justify-between gap-2">
-                  <div>
-                    <p className="text-[11px] text-muted-foreground">Oportunidades</p>
-                    <p className={`text-lg font-bold leading-tight ${q.color}`}>{q.count}</p>
+      <div className="border-t border-border px-5 py-4 space-y-2">
+        {Object.values(resumoQuadrantes.quadrantes).map((q) => {
+          const pct = resumoQuadrantes.totalValor > 0
+            ? Math.round((q.valor / resumoQuadrantes.totalValor) * 100)
+            : 0;
+          const isOpen = quadranteSelecionado === q.key;
+          return (
+            <div key={q.key} className={`rounded-lg border overflow-hidden ${q.bg}`}>
+              {/* Linha clicável */}
+              <button
+                className="w-full flex items-center gap-3 px-4 py-2.5 hover:brightness-95 transition-all text-left"
+                onClick={() => setQuadranteSelecionado(isOpen ? null : q.key)}
+              >
+                <span className={`text-xs font-semibold flex-1 ${q.color}`}>{q.label}</span>
+                <div className="flex items-center gap-4 text-xs shrink-0">
+                  <div className="text-center">
+                    <p className="text-[10px] text-muted-foreground leading-tight">Oport.</p>
+                    <p className={`font-bold leading-tight ${q.color}`}>{q.count}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-[11px] text-muted-foreground">Valor total</p>
-                    <p className="text-xs font-semibold text-foreground">
+                  <div className="text-center">
+                    <p className="text-[10px] text-muted-foreground leading-tight">Valor Total</p>
+                    <p className="font-semibold text-foreground leading-tight">
                       {q.valor > 0 ? `R$ ${Number(q.valor).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}` : '—'}
                     </p>
-                    <p className={`text-xs font-bold ${q.color}`}>{pct > 0 ? `${pct}%` : '—'}</p>
                   </div>
+                  <div className="text-center">
+                    <p className="text-[10px] text-muted-foreground leading-tight">% Valor</p>
+                    <p className={`font-bold leading-tight ${q.color}`}>{pct > 0 ? `${pct}%` : '—'}</p>
+                  </div>
+                  {isOpen ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />}
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              </button>
+
+              {/* Lista de oportunidades ao expandir */}
+              {isOpen && (
+                <div className="border-t border-border/50 bg-card/80">
+                  {q.pontos.length === 0 ? (
+                    <p className="text-xs text-muted-foreground px-4 py-3">Nenhuma oportunidade neste quadrante.</p>
+                  ) : (
+                    <>
+                      <div className="divide-y divide-border/30">
+                        {q.pontos.map(p => (
+                          <button
+                            key={p.id}
+                            className="w-full flex items-center justify-between gap-3 px-4 py-2 hover:bg-muted/40 transition-colors text-left"
+                            onClick={() => navigate(`/oportunidades/${p.id}`, { state: { from: '/' } })}
+                          >
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: COR_MAP[p.saude.cor] }} />
+                              <span className="text-xs text-foreground truncate font-medium">{p.nome}</span>
+                            </div>
+                            <div className="flex items-center gap-3 shrink-0">
+                              <span className="text-[11px] text-muted-foreground">{p.etapa_pipeline}</span>
+                              <span className="text-[11px] font-semibold text-foreground">
+                                {p.valor_estimado ? `R$ ${Number(p.valor_estimado).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}` : '—'}
+                              </span>
+                              <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
