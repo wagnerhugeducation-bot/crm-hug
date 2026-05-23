@@ -1,7 +1,8 @@
 import { useMemo, useState, useCallback } from 'react';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
-import { TrendingUp, Filter, X, ExternalLink } from 'lucide-react';
+import { TrendingUp, Filter, X, ExternalLink, HelpCircle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Link } from 'react-router-dom';
 
 const LS_KEY = 'modalidades_padrao_graus';
@@ -236,6 +237,67 @@ export default function MatrizPrioridade({ oportunidades, bantScores, tarefas, o
           <TrendingUp className="w-4 h-4 text-primary" />
           <h2 className="text-sm font-semibold text-foreground">Matriz de Prioridade Comercial</h2>
           <span className="text-xs text-muted-foreground bg-muted rounded-full px-2 py-0.5">{pontosFiltrados.length} oport.</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="p-0.5 rounded-full hover:bg-muted transition-colors" title="Como funciona?">
+                <HelpCircle className="w-4 h-4 text-muted-foreground hover:text-primary transition-colors" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent side="bottom" align="start" className="w-80 text-xs p-4 space-y-3">
+              <p className="font-bold text-sm text-foreground">Como a Matriz funciona?</p>
+              <p className="text-muted-foreground">Cada bolha representa uma oportunidade posicionada em dois eixos:</p>
+
+              <div className="space-y-2">
+                <div className="rounded-lg bg-muted/60 px-3 py-2">
+                  <p className="font-semibold text-foreground mb-1">→ Eixo X — Maturidade Comercial</p>
+                  <p className="text-muted-foreground leading-snug">Soma de três fatores:<br />
+                    <span className="text-foreground">• Etapa do pipeline</span> (Prospecção=10 … Fechamento=50)<br />
+                    <span className="text-foreground">• Score BANT</span> (0–40 pontos)<br />
+                    <span className="text-foreground">• Saúde de interações</span>: ≤15d=+15 / 16–30d=+8 / +30d=0
+                  </p>
+                </div>
+                <div className="rounded-lg bg-muted/60 px-3 py-2">
+                  <p className="font-semibold text-foreground mb-1">↑ Eixo Y — Potencial Estratégico</p>
+                  <p className="text-muted-foreground leading-snug">
+                    <span className="text-foreground">70%</span> do valor estimado (normalizado)<br />
+                    <span className="text-foreground">30%</span> do grau de facilidade da modalidade de licitação
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <p className="font-semibold text-foreground">Quadrantes:</p>
+                <div className="grid grid-cols-2 gap-1 text-[11px]">
+                  <div className="bg-orange-50 border border-orange-200 rounded px-2 py-1.5">
+                    <p className="font-semibold text-orange-700">🔥 Prioridade Máxima</p>
+                    <p className="text-orange-600">Alta maturidade + alto potencial</p>
+                  </div>
+                  <div className="bg-yellow-50 border border-yellow-200 rounded px-2 py-1.5">
+                    <p className="font-semibold text-yellow-700">⚠️ Grande Potencial</p>
+                    <p className="text-yellow-600">Baixa maturidade + alto potencial</p>
+                  </div>
+                  <div className="bg-blue-50 border border-blue-200 rounded px-2 py-1.5">
+                    <p className="font-semibold text-blue-700">⚡ Ganhos Rápidos</p>
+                    <p className="text-blue-600">Alta maturidade + baixo potencial</p>
+                  </div>
+                  <div className="bg-muted border border-border rounded px-2 py-1.5">
+                    <p className="font-semibold text-muted-foreground">⏳ Baixa Prioridade</p>
+                    <p className="text-muted-foreground">Baixa maturidade + baixo potencial</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <p className="font-semibold text-foreground">Cor da bolha — Saúde:</p>
+                <div className="flex gap-3 text-[11px]">
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 inline-block"/>≤ 15 dias</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-400 inline-block"/>16–30 dias</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block"/>&gt; 30 dias</span>
+                </div>
+                <p className="text-muted-foreground text-[11px]">Tamanho da bolha = valor estimado da oportunidade.</p>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
         <div className="flex flex-wrap gap-2 items-center">
           <Filter className="w-3.5 h-3.5 text-muted-foreground" />

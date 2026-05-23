@@ -12,10 +12,50 @@ import { toast } from 'sonner';
 import { ArrowLeft, Save } from 'lucide-react';
 
 const CRITERIOS = [
-  { key: 'budget', label: 'Budget — Orçamento', desc: 'O órgão tem orçamento disponível para esta solução?' },
-  { key: 'authority', label: 'Authority — Autoridade', desc: 'Você tem acesso ao decisor da compra?' },
-  { key: 'need', label: 'Need — Necessidade', desc: 'Existe uma necessidade clara e urgente?' },
-  { key: 'timing', label: 'Timing — Momento', desc: 'O timing da compra é favorável?' },
+  {
+    key: 'budget', label: 'Budget — Orçamento', desc: 'O órgão tem orçamento disponível para esta solução?',
+    notas: {
+      0: 'Nenhuma informação sobre orçamento', 1: 'Cliente informou que não há orçamento',
+      2: 'Existe interesse, mas sem previsão orçamentária', 3: 'Possível verba futura ainda não confirmada',
+      4: 'Há indicação de orçamento, mas muito incerta', 5: 'Existe verba parcial ou dependente de aprovação',
+      6: 'Orçamento previsto no planejamento', 7: 'Verba praticamente aprovada',
+      8: 'Recurso disponível para contratação', 9: 'Orçamento reservado especificamente para a solução',
+      10: 'Verba confirmada e pronta para execução',
+    },
+  },
+  {
+    key: 'authority', label: 'Authority — Autoridade', desc: 'Você tem acesso ao decisor da compra?',
+    notas: {
+      0: 'Nenhum contato identificado', 1: 'Apenas contato operacional',
+      2: 'Fala com usuário sem influência', 3: 'Contato conhece o processo mas não influencia',
+      4: 'Existe influência indireta', 5: 'Contato possui influência moderada',
+      6: 'Acesso parcial ao decisor', 7: 'Conversa recorrente com decisor',
+      8: 'Decisor participa das reuniões', 9: 'Forte relacionamento com decisor',
+      10: 'Decisor validou interesse e conduz compra',
+    },
+  },
+  {
+    key: 'need', label: 'Need — Necessidade', desc: 'Existe uma necessidade clara e urgente?',
+    notas: {
+      0: 'Nenhuma necessidade identificada', 1: 'Interesse genérico',
+      2: 'Problema pequeno sem prioridade', 3: 'Existe dor, mas sem urgência',
+      4: 'Necessidade percebida parcialmente', 5: 'Problema conhecido',
+      6: 'Necessidade relevante', 7: 'Problema impacta operação',
+      8: 'Necessidade clara e prioritária', 9: 'Alta urgência para resolver',
+      10: 'Problema crítico exigindo solução imediata',
+    },
+  },
+  {
+    key: 'timing', label: 'Time — Tempo', desc: 'Existe previsão ou janela para contratação?',
+    notas: {
+      0: 'Sem previsão', 1: 'Compra improvável',
+      2: 'Possível interesse futuro', 3: 'Sem cronograma definido',
+      4: 'Discussão inicial de prazo', 5: 'Possível contratação futura',
+      6: 'Janela estimada de contratação', 7: 'Processo previsto para curto prazo',
+      8: 'Processo em andamento', 9: 'Contratação iminente',
+      10: 'Compra prevista/imediata',
+    },
+  },
 ];
 
 function getClassificacao(total) {
@@ -84,34 +124,46 @@ export default function BANTForm() {
             </div>
           </div>
 
-          {CRITERIOS.map(c => (
-            <div key={c.key} className="space-y-3">
-              <div>
-                <Label className="text-sm font-semibold">{c.label}</Label>
-                <p className="text-xs text-muted-foreground mt-0.5">{c.desc}</p>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex-1">
-                  <Slider
-                    value={[form[`${c.key}_score`] || 0]}
-                    onValueChange={([v]) => set(`${c.key}_score`, v)}
-                    min={0} max={10} step={1}
-                    className="w-full"
-                  />
+          {CRITERIOS.map(c => {
+            const score = form[`${c.key}_score`] ?? 0;
+            const significado = c.notas[score];
+            const scoreColor = score >= 8 ? 'text-green-600 bg-green-50' : score >= 5 ? 'text-yellow-600 bg-yellow-50' : 'text-red-600 bg-red-50';
+            return (
+              <div key={c.key} className="space-y-3">
+                <div>
+                  <Label className="text-sm font-semibold">{c.label}</Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">{c.desc}</p>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <span className="text-sm font-bold text-primary">{form[`${c.key}_score`]}</span>
+                <div className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <Slider
+                      value={[score]}
+                      onValueChange={([v]) => set(`${c.key}_score`, v)}
+                      min={0} max={10} step={1}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${scoreColor}`}>
+                    <span className="text-sm font-bold">{score}</span>
+                  </div>
                 </div>
+                {/* Significado da nota */}
+                <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-muted/60 border border-border/50">
+                  <span className="text-base leading-none mt-0.5">
+                    {score >= 8 ? '✅' : score >= 5 ? '🟡' : score >= 3 ? '🔸' : '❌'}
+                  </span>
+                  <p className="text-xs text-muted-foreground leading-snug">{significado}</p>
+                </div>
+                <Textarea
+                  value={form[`${c.key}_notas`]}
+                  onChange={e => set(`${c.key}_notas`, e.target.value)}
+                  placeholder={`Observações sobre ${c.label.split(' — ')[1].toLowerCase()}...`}
+                  className="resize-none text-sm"
+                  rows={2}
+                />
               </div>
-              <Textarea
-                value={form[`${c.key}_notas`]}
-                onChange={e => set(`${c.key}_notas`, e.target.value)}
-                placeholder={`Observações sobre ${c.label.split(' — ')[1].toLowerCase()}...`}
-                className="resize-none text-sm"
-                rows={2}
-              />
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="flex justify-end gap-3 mt-4">
