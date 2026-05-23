@@ -206,6 +206,27 @@ export default function MatrizPrioridade({ oportunidades, bantScores, tarefas, o
     return true;
   }), [pontos, filtroResponsavel, filtroEtapa, filtroModalidade, filtroSaude]);
 
+  const resumoQuadrantes = useMemo(() => {
+    const quadrantes = {
+      prioridade_maxima: { label: '🔥 Prioridade Máxima', count: 0, valor: 0, color: 'text-orange-600', bg: 'bg-orange-50 border-orange-200' },
+      grande_potencial: { label: '⚠️ Grande Potencial', count: 0, valor: 0, color: 'text-yellow-700', bg: 'bg-yellow-50 border-yellow-200' },
+      ganhos_rapidos: { label: '⚡ Ganhos Rápidos', count: 0, valor: 0, color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200' },
+      baixa_prioridade: { label: '⏳ Baixa Prioridade', count: 0, valor: 0, color: 'text-muted-foreground', bg: 'bg-muted/40 border-border' },
+    };
+    pontosFiltrados.forEach(p => {
+      const altaMaturidade = p.x >= 50;
+      const altoPotencial = p.y >= 50;
+      const key = altaMaturidade && altoPotencial ? 'prioridade_maxima'
+        : !altaMaturidade && altoPotencial ? 'grande_potencial'
+        : altaMaturidade && !altoPotencial ? 'ganhos_rapidos'
+        : 'baixa_prioridade';
+      quadrantes[key].count += 1;
+      quadrantes[key].valor += p.valor_estimado || 0;
+    });
+    const totalValor = Object.values(quadrantes).reduce((s, q) => s + q.valor, 0);
+    return { quadrantes, totalValor };
+  }, [pontosFiltrados]);
+
   const modalidades = useMemo(() => {
     const set = new Set((oportunidades || []).map(o => o.tipo_licitacao).filter(Boolean));
     return [...set];
@@ -391,6 +412,35 @@ export default function MatrizPrioridade({ oportunidades, bantScores, tarefas, o
             onClose={() => setPontoSelecionado(null)}
           />
         )}
+      </div>
+
+      {/* Legenda dos Quadrantes */}
+      <div className="border-t border-border px-5 py-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {Object.values(resumoQuadrantes.quadrantes).map((q) => {
+            const pct = resumoQuadrantes.totalValor > 0
+              ? Math.round((q.valor / resumoQuadrantes.totalValor) * 100)
+              : 0;
+            return (
+              <div key={q.label} className={`rounded-lg border px-4 py-3 ${q.bg}`}>
+                <p className={`text-xs font-semibold mb-2 ${q.color}`}>{q.label}</p>
+                <div className="flex items-end justify-between gap-2">
+                  <div>
+                    <p className="text-[11px] text-muted-foreground">Oportunidades</p>
+                    <p className={`text-lg font-bold leading-tight ${q.color}`}>{q.count}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[11px] text-muted-foreground">Valor total</p>
+                    <p className="text-xs font-semibold text-foreground">
+                      {q.valor > 0 ? `R$ ${Number(q.valor).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}` : '—'}
+                    </p>
+                    <p className={`text-xs font-bold ${q.color}`}>{pct > 0 ? `${pct}%` : '—'}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
