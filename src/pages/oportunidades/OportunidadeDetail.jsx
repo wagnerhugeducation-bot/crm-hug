@@ -1,14 +1,50 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Pencil, Target, CheckSquare, FileText, Star, Clock } from 'lucide-react';
+import { ArrowLeft, Pencil, CheckSquare, FileText, Star, Clock, CheckCircle2 } from 'lucide-react';
 import BANTGauge from '@/components/bant/BANTGauge';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/ui/PageHeader';
 import StatusBadge from '@/components/ui/StatusBadge';
-import DataTable from '@/components/ui/DataTable';
 import LinhaDoTempo from '@/components/oportunidades/LinhaDoTempo';
 import { useUsuariosMap } from '@/hooks/useUsuariosMap';
+
+// Tabela com altura fixa (5 linhas) e scroll interno
+function ScrollableTable({ columns, data, emptyMessage }) {
+  if (!data || data.length === 0) {
+    return <p className="text-xs text-muted-foreground text-center py-6">{emptyMessage}</p>;
+  }
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-border bg-muted/40">
+            {columns.map(col => (
+              <th key={col.key} className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                {col.label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+      </table>
+      <div className="overflow-y-auto" style={{ maxHeight: '220px' }}>
+        <table className="w-full text-sm">
+          <tbody className="divide-y divide-border">
+            {data.map((row, i) => (
+              <tr key={row.id || i} className="hover:bg-muted/30 transition-colors">
+                {columns.map(col => (
+                  <td key={col.key} className="px-4 py-2.5 text-foreground">
+                    {col.render ? col.render(row[col.key], row) : (row[col.key] ?? '—')}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
 
 function InfoRow({ label, value }) {
   if (!value) return null;
@@ -134,63 +170,98 @@ export default function OportunidadeDetail() {
           </div>
         </div>
 
-        {/* Tarefas + Documentos + Linha do Tempo */}
+        {/* Tarefas + Tarefas Concluídas + Documentos + Linha do Tempo */}
         <div className="lg:col-span-2 space-y-5">
-          <div className="bg-card rounded-xl border border-border">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-              <div className="flex items-center gap-2">
-                <CheckSquare className="w-4 h-4 text-primary" />
-                <h3 className="text-sm font-semibold">Tarefas ({tarefas.length})</h3>
+        {/* Tarefas pendentes/em andamento */}
+        {(() => {
+          const tarefasAtivas = tarefas.filter(t => t.status !== 'Concluída' && t.status !== 'Cancelada');
+          return (
+            <div className="bg-card rounded-xl border border-border">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+                <div className="flex items-center gap-2">
+                  <CheckSquare className="w-4 h-4 text-primary" />
+                  <h3 className="text-sm font-semibold">Tarefas ({tarefasAtivas.length})</h3>
+                </div>
+                <Link to={`/tarefas/nova?oportunidade_id=${id}`}>
+                  <Button size="sm" variant="outline" className="text-xs">+ Tarefa</Button>
+                </Link>
               </div>
-              <Link to={`/tarefas/nova?oportunidade_id=${id}`}>
-                <Button size="sm" variant="outline" className="text-xs">+ Tarefa</Button>
-              </Link>
+              <ScrollableTable
+                columns={[
+                  { key: 'titulo', label: 'Título' },
+                  { key: 'tipo', label: 'Tipo' },
+                  { key: 'data_vencimento', label: 'Vencimento', render: v => v ? new Date(v).toLocaleDateString('pt-BR') : '—' },
+                  { key: 'status', label: 'Status', render: v => <StatusBadge value={v} /> },
+                  { key: 'prioridade', label: 'Prioridade', render: v => <StatusBadge value={v} /> },
+                ]}
+                data={tarefasAtivas}
+                emptyMessage="Nenhuma tarefa pendente."
+              />
             </div>
-            <DataTable
-              columns={[
-                { key: 'titulo', label: 'Título' },
-                { key: 'tipo', label: 'Tipo' },
-                { key: 'data_vencimento', label: 'Vencimento', render: v => v ? new Date(v).toLocaleDateString('pt-BR') : '—' },
-                { key: 'status', label: 'Status', render: v => <StatusBadge value={v} /> },
-                { key: 'prioridade', label: 'Prioridade', render: v => <StatusBadge value={v} /> },
-              ]}
-              data={tarefas}
-              emptyMessage="Nenhuma tarefa vinculada."
-            />
-          </div>
+          );
+        })()}
 
-          <div className="bg-card rounded-xl border border-border">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-              <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-primary" />
-                <h3 className="text-sm font-semibold">Documentos ({documentos.length})</h3>
+        {/* Tarefas Concluídas */}
+        {(() => {
+          const concluidas = tarefas
+            .filter(t => t.status === 'Concluída')
+            .sort((a, b) => new Date(b.concluida_em || b.updated_date) - new Date(a.concluida_em || a.updated_date));
+          return (
+            <div className="bg-card rounded-xl border border-border">
+              <div className="flex items-center gap-2 px-5 py-4 border-b border-border">
+                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                <h3 className="text-sm font-semibold">Tarefas Concluídas ({concluidas.length})</h3>
               </div>
-              <Link to={`/documentos/novo?oportunidade_id=${id}`}>
-                <Button size="sm" variant="outline" className="text-xs">+ Documento</Button>
-              </Link>
+              <ScrollableTable
+                columns={[
+                  { key: 'titulo', label: 'Título' },
+                  { key: 'tipo', label: 'Tipo' },
+                  { key: 'resultado', label: 'Resultado', render: v => v ? <span className="text-xs text-muted-foreground">{v}</span> : '—' },
+                  { key: 'concluida_em', label: 'Concluída em', render: (v, row) => {
+                    const dt = v || row.updated_date;
+                    return dt ? new Date(dt).toLocaleDateString('pt-BR') : '—';
+                  }},
+                ]}
+                data={concluidas}
+                emptyMessage="Nenhuma tarefa concluída ainda."
+              />
             </div>
-            <DataTable
-              columns={[
-                { key: 'nome', label: 'Nome' },
-                { key: 'tipo', label: 'Tipo' },
-                { key: 'validade', label: 'Validade', render: v => v ? new Date(v).toLocaleDateString('pt-BR') : '—' },
-                { key: 'arquivo_url', label: 'Arquivo', render: v => v ? <a href={v} target="_blank" rel="noreferrer" className="text-primary hover:underline text-xs">Abrir</a> : '—' },
-              ]}
-              data={documentos}
-              emptyMessage="Nenhum documento vinculado."
-            />
-          </div>
+          );
+        })()}
 
-          {/* Linha do Tempo */}
-          <div className="bg-card rounded-xl border border-border">
-            <div className="flex items-center gap-2 px-5 py-4 border-b border-border">
-              <Clock className="w-4 h-4 text-primary" />
-              <h3 className="text-sm font-semibold">Histórico de Atividades</h3>
+        {/* Documentos */}
+        <div className="bg-card rounded-xl border border-border">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-primary" />
+              <h3 className="text-sm font-semibold">Documentos ({documentos.length})</h3>
             </div>
-            <div className="p-5">
-              <LinhaDoTempo oportunidadeId={id} />
-            </div>
+            <Link to={`/documentos/novo?oportunidade_id=${id}`}>
+              <Button size="sm" variant="outline" className="text-xs">+ Documento</Button>
+            </Link>
           </div>
+          <ScrollableTable
+            columns={[
+              { key: 'nome', label: 'Nome' },
+              { key: 'tipo', label: 'Tipo' },
+              { key: 'validade', label: 'Validade', render: v => v ? new Date(v).toLocaleDateString('pt-BR') : '—' },
+              { key: 'arquivo_url', label: 'Arquivo', render: v => v ? <a href={v} target="_blank" rel="noreferrer" className="text-primary hover:underline text-xs">Abrir</a> : '—' },
+            ]}
+            data={documentos}
+            emptyMessage="Nenhum documento vinculado."
+          />
+        </div>
+
+        {/* Linha do Tempo */}
+        <div className="bg-card rounded-xl border border-border">
+          <div className="flex items-center gap-2 px-5 py-4 border-b border-border">
+            <Clock className="w-4 h-4 text-primary" />
+            <h3 className="text-sm font-semibold">Histórico de Atividades</h3>
+          </div>
+          <div className="p-5">
+            <LinhaDoTempo oportunidadeId={id} />
+          </div>
+        </div>
         </div>
       </div>
     </div>
