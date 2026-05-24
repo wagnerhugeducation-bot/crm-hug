@@ -269,7 +269,7 @@ export default function Dashboard() {
               </div>
               <Link to="/oportunidades" className="text-xs text-primary hover:underline font-medium">Ver todas</Link>
             </div>
-            <div className="px-4 pt-4 pb-2">
+            <div className="px-4 pt-4 pb-4">
               {isLoading ? (
                 <div className="w-full h-[280px] bg-muted animate-pulse rounded-lg" />
               ) : pizzaData.length === 0 ? (
@@ -293,10 +293,10 @@ export default function Dashboard() {
                       <span className="text-[10px] font-semibold text-muted-foreground uppercase text-right">Oport. / %</span>
                     </div>
                     {pizzaData.map((d) => (
-                      <div key={d.name} className="grid grid-cols-4 gap-1 items-center px-1 py-0.5 rounded hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => navigate(`/oportunidades?etapa=${encodeURIComponent(d.name)}`)}>
+                      <div key={d.name} className="grid grid-cols-4 gap-1 items-center px-1 py-1 rounded hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => navigate(`/oportunidades?etapa=${encodeURIComponent(d.name)}`)}>
                         <div className="flex items-center gap-1.5 col-span-2">
                           <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
-                          <span className="text-xs text-foreground truncate">{d.name}</span>
+                          <span className="text-xs text-foreground">{d.name}</span>
                         </div>
                         <span className="text-xs text-foreground text-right font-medium">R$ {Number(d.value).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</span>
                         <span className="text-xs text-muted-foreground text-right">{d.count} / <span className="font-semibold text-foreground">{d.pct}%</span></span>
@@ -317,7 +317,7 @@ export default function Dashboard() {
               </div>
               <Link to="/oportunidades" className="text-xs text-primary hover:underline font-medium">Ver todas</Link>
             </div>
-            <div className="px-4 pt-4 pb-2">
+            <div className="px-4 pt-4 pb-4">
               {isLoading ? (
                 <div className="w-full h-[280px] bg-muted animate-pulse rounded-lg" />
               ) : pizzaObjetoData.length === 0 ? (
@@ -341,10 +341,10 @@ export default function Dashboard() {
                       <span className="text-[10px] font-semibold text-muted-foreground uppercase text-right">Oport. / %</span>
                     </div>
                     {pizzaObjetoData.map((d) => (
-                      <div key={d.name} className="grid grid-cols-4 gap-1 items-center px-1 py-0.5 rounded hover:bg-muted/50 transition-colors">
+                      <div key={d.name} className="grid grid-cols-4 gap-1 items-center px-1 py-1 rounded hover:bg-muted/50 transition-colors">
                         <div className="flex items-center gap-1.5 col-span-2">
                           <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
-                          <span className="text-xs text-foreground truncate">{d.name}</span>
+                          <span className="text-xs text-foreground">{d.name}</span>
                         </div>
                         <span className="text-xs text-foreground text-right font-medium">R$ {Number(d.value).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</span>
                         <span className="text-xs text-muted-foreground text-right">{d.count} / <span className="font-semibold text-foreground">{d.pct}%</span></span>

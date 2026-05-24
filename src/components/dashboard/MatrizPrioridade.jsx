@@ -326,7 +326,7 @@ export default function MatrizPrioridade({ oportunidades, bantScores, tarefas, o
         <div className="flex flex-wrap gap-2 items-center">
           <Filter className="w-3.5 h-3.5 text-muted-foreground" />
           <Select value={filtroResponsavel} onValueChange={setFiltroResponsavel}>
-            <SelectTrigger className="h-7 text-xs min-w-[140px]"><SelectValue placeholder="Responsável" /></SelectTrigger>
+            <SelectTrigger className="h-7 text-xs w-36"><SelectValue placeholder="Responsável" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos Responsáveis</SelectItem>
               {(usuarios || []).map(u => (
@@ -335,7 +335,7 @@ export default function MatrizPrioridade({ oportunidades, bantScores, tarefas, o
             </SelectContent>
           </Select>
           <Select value={filtroEtapa} onValueChange={setFiltroEtapa}>
-            <SelectTrigger className="h-7 text-xs min-w-[120px]"><SelectValue placeholder="Etapa" /></SelectTrigger>
+            <SelectTrigger className="h-7 text-xs w-32"><SelectValue placeholder="Etapa" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas Etapas</SelectItem>
               {['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento'].map(v => (
@@ -344,14 +344,14 @@ export default function MatrizPrioridade({ oportunidades, bantScores, tarefas, o
             </SelectContent>
           </Select>
           <Select value={filtroModalidade} onValueChange={setFiltroModalidade}>
-            <SelectTrigger className="h-7 text-xs min-w-[140px]"><SelectValue placeholder="Modalidade" /></SelectTrigger>
+            <SelectTrigger className="h-7 text-xs w-36"><SelectValue placeholder="Modalidade" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas Modalidades</SelectItem>
               {modalidades.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={filtroSaude} onValueChange={setFiltroSaude}>
-            <SelectTrigger className="h-7 text-xs min-w-[110px]"><SelectValue placeholder="Saúde" /></SelectTrigger>
+            <SelectTrigger className="h-7 text-xs w-28"><SelectValue placeholder="Saúde" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Toda Saúde</SelectItem>
               <SelectItem value="verde">🟢 Ativa</SelectItem>
@@ -416,6 +416,26 @@ export default function MatrizPrioridade({ oportunidades, bantScores, tarefas, o
           />
         )}
       </div>
+
+      {/* Totalização geral */}
+      {(() => {
+        const totalOp = pontosFiltrados.length;
+        const totalVal = pontosFiltrados.reduce((s, p) => s + (p.valor_estimado || 0), 0);
+        return (
+          <div className="border-t border-border px-5 py-3 flex flex-wrap gap-6 bg-muted/30">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Total de Oportunidades:</span>
+              <span className="text-sm font-bold text-foreground">{totalOp}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Valor Total em Negociação:</span>
+              <span className="text-sm font-bold text-primary">
+                {totalVal > 0 ? `R$ ${Number(totalVal).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}` : '—'}
+              </span>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Legenda dos Quadrantes */}
       <div className="border-t border-border px-5 py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-start">
