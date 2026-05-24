@@ -174,7 +174,7 @@ export default function OportunidadeDetail() {
             <InfoRow label="Modalidade" value={op.tipo_licitacao} />
             <InfoRow label="Nº Edital" value={op.numero_edital} />
             <InfoRow label="Valor Estimado" value={op.valor_estimado ? `R$ ${Number(op.valor_estimado).toLocaleString('pt-BR')}` : null} />
-            <InfoRow label="Potencial da Oportunidade" value={op.potencial_oportunidade ? `R$ ${Number(op.potencial_oportunidade).toLocaleString('pt-BR')}` : null} />
+            <InfoRow label="Potencial do Órgão" value={op.potencial_oportunidade ? `R$ ${Number(op.potencial_oportunidade).toLocaleString('pt-BR')}` : null} />
             <InfoRow label="Data Abertura" value={op.data_abertura} />
             <InfoRow label="Prazo Proposta" value={op.data_entrega_proposta} />
             <InfoRow label="Concorrentes" value={op.concorrentes} />

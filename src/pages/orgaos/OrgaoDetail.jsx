@@ -68,6 +68,7 @@ export default function OrgaoDetail() {
           <InfoRow label="Esfera" value={orgao.esfera} />
           <InfoRow label="Poder" value={orgao.poder} />
           <InfoRow label="Cidade / Estado" value={orgao.cidade ? `${orgao.cidade} / ${orgao.estado}` : null} />
+          <InfoRow label="Potencial do Órgão" value={orgao.potencial_orgao ? `R$ ${Number(orgao.potencial_orgao).toLocaleString('pt-BR')}` : null} />
           <InfoRow label="Responsável Interno" value={orgao.responsavel_id ? getLabel(orgao.responsavel_id) : null} />
           <InfoRow label="Endereço" value={orgao.endereco} />
           {orgao.telefone && (

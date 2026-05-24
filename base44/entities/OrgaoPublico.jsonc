@@ -81,6 +81,10 @@
       "type": "number",
       "description": "Or\u00e7amento anual estimado"
     },
+    "potencial_orgao": {
+      "type": "number",
+      "description": "Potencial do \u00d3rg\u00e3o em reais"
+    },
     "responsavel_id": {
       "type": "string",
       "description": "ID do respons\u00e1vel interno"
@@ -192,6 +196,18 @@
     "doc_em": {
       "type": "number",
       "description": "Docentes - Ensino M\u00e9dio"
+    },
+    "esc_infantil": {
+      "type": "number",
+      "description": "N\u00famero de Escolas - Ed. Infantil"
+    },
+    "esc_fundamental": {
+      "type": "number",
+      "description": "N\u00famero de Escolas - Fundamental"
+    },
+    "esc_medio": {
+      "type": "number",
+      "description": "N\u00famero de Escolas - M\u00e9dio"
     },
     "ideb_ef1": {
       "type": "number",

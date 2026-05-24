@@ -31,7 +31,9 @@ const defaultForm = {
   mat_em1: null, mat_em2: null, mat_em3: null,
   doc_bercario: null, doc_etapa1: null, doc_etapa2: null,
   doc_ef1: null, doc_ef2: null, doc_em: null,
+  esc_infantil: null, esc_fundamental: null, esc_medio: null,
   ideb_ef1: null, ideb_ef2: null, ideb_em: null, ideb_ano: null,
+  potencial_orgao: null,
 };
 
 function FieldError({ msg }) {
@@ -303,6 +305,18 @@ Formato: use texto corrido com marcadores, seja objetivo e direto. Escreva em po
         <div className="bg-card rounded-xl border border-border p-6 space-y-4">
           <h3 className="text-sm font-semibold text-foreground pb-2 border-b border-border">Relacionamento</h3>
           <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <Label>Potencial do Órgão (R$)</Label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.potencial_orgao ?? ''}
+                onChange={e => set('potencial_orgao', e.target.value === '' ? null : Number(e.target.value))}
+                placeholder="0,00"
+                className="mt-1"
+              />
+            </div>
             <div>
               <Label>Status do Relacionamento</Label>
               <Select value={form.relacionamento_status} onValueChange={v => set('relacionamento_status', v)}>

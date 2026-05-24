@@ -23,6 +23,8 @@ const defaultForm = {
   data_entrega_proposta: '', potencial_oportunidade: '', concorrentes: '', notas: ''
 };
 
+const fmtBRL = (v) => v != null && v !== '' ? `R$ ${Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—';
+
 const LICITACOES_PADRAO = [
   'Pregão Eletrônico', 'Pregão Presencial', 'Concorrência',
   'Tomada de Preços', 'Convite', 'Dispensa', 'Inexigibilidade', 'RDC', 'Leilão'
@@ -44,6 +46,7 @@ export default function OportunidadeForm() {
   const isEdit = !!id && id !== 'nova';
   const [form, setForm] = useState(defaultForm);
   const [orgaos, setOrgaos] = useState([]);
+  const [orgaoSelecionado, setOrgaoSelecionado] = useState(null);
   const [licitacoes, setLicitacoes] = useState(LICITACOES_PADRAO);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -52,7 +55,15 @@ export default function OportunidadeForm() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const orgaoId = params.get('orgao_id');
-    base44.entities.OrgaoPublico.list().then(res => setOrgaos(res));
+    base44.entities.OrgaoPublico.list().then(res => {
+      setOrgaos(res);
+      if (isEdit) {
+        base44.entities.Oportunidade.list().then(opRes => {
+          const found = opRes.find(r => r.id === id);
+          if (found?.orgao_id) setOrgaoSelecionado(res.find(o => o.id === found.orgao_id) || null);
+        });
+      }
+    });
     base44.entities.ModalidadeLicitacao.list().then(res => {
       const extras = res.map(m => m.nome);
       setLicitacoes([...LICITACOES_PADRAO, ...extras]);
@@ -189,7 +200,7 @@ export default function OportunidadeForm() {
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
               <Label>Órgão Público</Label>
-              <Select value={form.orgao_id} onValueChange={v => set('orgao_id', v)}>
+              <Select value={form.orgao_id} onValueChange={v => { set('orgao_id', v); setOrgaoSelecionado(orgaos.find(o => o.id === v) || null); }}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione o órgão (opcional)" /></SelectTrigger>
                 <SelectContent>
                   {orgaos.map(o => <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>)}
@@ -241,17 +252,11 @@ export default function OportunidadeForm() {
               <FieldError msg={errors.valor_estimado} />
             </div>
             <div>
-              <Label>Potencial da Oportunidade (R$)</Label>
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                value={form.potencial_oportunidade}
-                onChange={e => set('potencial_oportunidade', e.target.value)}
-                placeholder="0,00"
-                className={cn("mt-1", errors.potencial_oportunidade && "border-destructive focus-visible:ring-destructive")}
-              />
-              <FieldError msg={errors.potencial_oportunidade} />
+              <Label>Potencial do Órgão (R$)</Label>
+              <div className="mt-1 h-9 px-3 flex items-center rounded-md border border-input bg-muted text-sm text-muted-foreground">
+                {orgaoSelecionado?.potencial_orgao ? fmtBRL(orgaoSelecionado.potencial_orgao) : '—'}
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1">Valor definido no cadastro do órgão</p>
             </div>
           </div>
         </div>

@@ -1,18 +1,21 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Target, Filter } from 'lucide-react';
+import { Target, Filter, FileDown } from 'lucide-react';
 import PageHeader from '@/components/ui/PageHeader';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import TarefasCalendario from '@/components/dashboard/TarefasCalendario';
 import KanbanBANT from '@/components/dashboard/KanbanBANT';
 import MatrizPrioridade from '@/components/dashboard/MatrizPrioridade';
+import OrgaosSemOportunidades from '@/components/dashboard/OrgaosSemOportunidades';
 import { useUsuariosMap } from '@/hooks/useUsuariosMap';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const dashboardRef = useRef(null);
   const { user, isAdmin: isAdminFn, isGestor: isGestorFn, userProfile } = useAuth();
   const { getLabel } = useUsuariosMap();
   const isAdmin = isAdminFn();
@@ -131,6 +134,18 @@ export default function Dashboard() {
 
   const usuarioLabel = (u) => u.nickname ? `@${u.nickname}` : (u.full_name || u.email);
 
+  const handleExportPDF = async () => {
+    const { default: jsPDF } = await import('jspdf');
+    const { default: html2canvas } = await import('html2canvas');
+    const el = dashboardRef.current;
+    if (!el) return;
+    const canvas = await html2canvas(el, { scale: 1.5, useCORS: true, allowTaint: true });
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [canvas.width / 1.5, canvas.height / 1.5] });
+    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 1.5, canvas.height / 1.5);
+    pdf.save('dashboard.pdf');
+  };
+
   const subtitleLabel = useMemo(() => {
     if (!podesFiltrar) return `Olá, ${user?.full_name || user?.email}`;
     if (filtroUsuario === '__all__') return isAdmin ? 'Visão consolidada — todos os usuários' : 'Visão consolidada — minha equipe';
@@ -140,30 +155,33 @@ export default function Dashboard() {
   }, [podesFiltrar, filtroUsuario, usuarios, user, isAdmin]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" ref={dashboardRef}>
       <PageHeader
         title="Dashboard"
         subtitle={subtitleLabel}
         actions={
-          podesFiltrar && (
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-muted-foreground" />
-              <Select value={filtroUsuario} onValueChange={setFiltroUsuario}>
-                <SelectTrigger className="h-8 text-xs w-52">
-                  <SelectValue placeholder="Filtrar por usuário" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__me__">Minhas atividades</SelectItem>
-                  <SelectItem value="__all__">{isAdmin ? 'Todos os usuários' : 'Toda minha equipe'}</SelectItem>
-                  {usuarios.filter(u => u.email !== user?.email).map((u) => (
-                    <SelectItem key={u.email} value={u.email}>
-                      {usuarioLabel(u)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )
+          <div className="flex items-center gap-2">
+            {podesFiltrar && (
+              <>
+                <Filter className="w-4 h-4 text-muted-foreground" />
+                <Select value={filtroUsuario} onValueChange={setFiltroUsuario}>
+                  <SelectTrigger className="h-8 text-xs w-52">
+                    <SelectValue placeholder="Filtrar por usuário" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__me__">Minhas atividades</SelectItem>
+                    <SelectItem value="__all__">{isAdmin ? 'Todos os usuários' : 'Toda minha equipe'}</SelectItem>
+                    {usuarios.filter(u => u.email !== user?.email).map((u) => (
+                      <SelectItem key={u.email} value={u.email}>{usuarioLabel(u)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </>
+            )}
+            <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-1.5 h-8 text-xs">
+              <FileDown className="w-3.5 h-3.5" /> Exportar PDF
+            </Button>
+          </div>
         }
       />
 
@@ -279,6 +297,14 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Órgãos sem Oportunidades */}
+      <OrgaosSemOportunidades
+        orgaos={allOrgaos}
+        oportunidades={allOportunidades}
+        contatos={allContatos}
+        isLoading={isLoading}
+      />
 
       {/* Calendário de Tarefas */}
       <TarefasCalendario

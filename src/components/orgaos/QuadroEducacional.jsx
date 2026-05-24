@@ -31,6 +31,12 @@ const DOCENTES_SEGMENTOS = [
   { key: 'doc_em', label: 'Ensino Médio' },
 ];
 
+const ESCOLAS_NIVEIS = [
+  { key: 'esc_infantil', label: 'Ed. Infantil' },
+  { key: 'esc_fundamental', label: 'Fundamental' },
+  { key: 'esc_medio', label: 'Médio' },
+];
+
 function NumericInput({ value, onChange, placeholder = '0' }) {
   return (
     <Input
@@ -58,10 +64,7 @@ export default function QuadroEducacional({ form, set }) {
           {MATRICULAS_CICLOS.map(({ key, label }) => (
             <div key={key}>
               <Label className="text-xs text-muted-foreground">{label}</Label>
-              <NumericInput
-                value={form[key]}
-                onChange={v => set(key, v)}
-              />
+              <NumericInput value={form[key]} onChange={v => set(key, v)} />
             </div>
           ))}
         </div>
@@ -74,10 +77,20 @@ export default function QuadroEducacional({ form, set }) {
           {DOCENTES_SEGMENTOS.map(({ key, label }) => (
             <div key={key}>
               <Label className="text-xs text-muted-foreground">{label}</Label>
-              <NumericInput
-                value={form[key]}
-                onChange={v => set(key, v)}
-              />
+              <NumericInput value={form[key]} onChange={v => set(key, v)} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Número de Escolas por Nível de Ensino */}
+      <div>
+        <p className="text-sm font-medium text-foreground mb-3">Número de Escolas por Nível de Ensino</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {ESCOLAS_NIVEIS.map(({ key, label }) => (
+            <div key={key}>
+              <Label className="text-xs text-muted-foreground">{label}</Label>
+              <NumericInput value={form[key]} onChange={v => set(key, v)} />
             </div>
           ))}
         </div>
@@ -89,54 +102,19 @@ export default function QuadroEducacional({ form, set }) {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div>
             <Label className="text-xs text-muted-foreground">IDEB – Anos Iniciais (EF1)</Label>
-            <Input
-              type="number"
-              step="0.1"
-              min="0"
-              max="10"
-              value={form.ideb_ef1 ?? ''}
-              onChange={e => set('ideb_ef1', e.target.value === '' ? null : Number(e.target.value))}
-              placeholder="0.0"
-              className="mt-1 text-center"
-            />
+            <Input type="number" step="0.1" min="0" max="10" value={form.ideb_ef1 ?? ''} onChange={e => set('ideb_ef1', e.target.value === '' ? null : Number(e.target.value))} placeholder="0.0" className="mt-1 text-center" />
           </div>
           <div>
             <Label className="text-xs text-muted-foreground">IDEB – Anos Finais (EF2)</Label>
-            <Input
-              type="number"
-              step="0.1"
-              min="0"
-              max="10"
-              value={form.ideb_ef2 ?? ''}
-              onChange={e => set('ideb_ef2', e.target.value === '' ? null : Number(e.target.value))}
-              placeholder="0.0"
-              className="mt-1 text-center"
-            />
+            <Input type="number" step="0.1" min="0" max="10" value={form.ideb_ef2 ?? ''} onChange={e => set('ideb_ef2', e.target.value === '' ? null : Number(e.target.value))} placeholder="0.0" className="mt-1 text-center" />
           </div>
           <div>
             <Label className="text-xs text-muted-foreground">IDEB – Ensino Médio</Label>
-            <Input
-              type="number"
-              step="0.1"
-              min="0"
-              max="10"
-              value={form.ideb_em ?? ''}
-              onChange={e => set('ideb_em', e.target.value === '' ? null : Number(e.target.value))}
-              placeholder="0.0"
-              className="mt-1 text-center"
-            />
+            <Input type="number" step="0.1" min="0" max="10" value={form.ideb_em ?? ''} onChange={e => set('ideb_em', e.target.value === '' ? null : Number(e.target.value))} placeholder="0.0" className="mt-1 text-center" />
           </div>
           <div>
             <Label className="text-xs text-muted-foreground">Ano de Referência IDEB</Label>
-            <Input
-              type="number"
-              min="2000"
-              max="2030"
-              value={form.ideb_ano ?? ''}
-              onChange={e => set('ideb_ano', e.target.value === '' ? null : Number(e.target.value))}
-              placeholder="2023"
-              className="mt-1 text-center"
-            />
+            <Input type="number" min="2000" max="2030" value={form.ideb_ano ?? ''} onChange={e => set('ideb_ano', e.target.value === '' ? null : Number(e.target.value))} placeholder="2023" className="mt-1 text-center" />
           </div>
         </div>
       </div>
