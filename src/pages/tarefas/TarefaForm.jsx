@@ -32,6 +32,7 @@ export default function TarefaForm() {
   const isEdit = !!id && id !== 'nova';
   const [form, setForm] = useState(defaultForm);
   const [oportunidades, setOportunidades] = useState([]);
+  const [orgaos, setOrgaos] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(isEdit);
 
@@ -43,7 +44,11 @@ export default function TarefaForm() {
     const loadOps = user
       ? base44.functions.invoke('getOportunidadesHierarquia', {}).then(res => res.data?.oportunidades || [])
       : Promise.resolve([]);
-    loadOps.then(res => setOportunidades(res));
+    const loadOrgaos = base44.entities.OrgaoPublico.list();
+    Promise.all([loadOps, loadOrgaos]).then(([ops, orgs]) => {
+      setOportunidades(ops);
+      setOrgaos(orgs);
+    });
     if (isEdit) {
       base44.entities.Tarefa.filter({ id }).then(res => {
         if (res[0]) setForm({ ...defaultForm, ...res[0] });
@@ -106,10 +111,28 @@ export default function TarefaForm() {
           </div>
           <div>
             <Label>Oportunidade Relacionada</Label>
-            <Select value={form.oportunidade_id} onValueChange={v => set('oportunidade_id', v)}>
+            <Select value={form.oportunidade_id} onValueChange={v => {
+              const op = oportunidades.find(o => o.id === v);
+              setForm(f => ({ ...f, oportunidade_id: v, orgao_id: op?.orgao_id || f.orgao_id }));
+            }}>
               <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione (opcional)" /></SelectTrigger>
               <SelectContent>{oportunidades.map(o => <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>)}</SelectContent>
             </Select>
+          </div>
+          <div>
+            <Label>Órgão Relacionado</Label>
+            {form.oportunidade_id ? (
+              <Input
+                className="mt-1 bg-muted/50 text-muted-foreground"
+                readOnly
+                value={orgaos.find(o => o.id === form.orgao_id)?.nome || '—'}
+              />
+            ) : (
+              <Select value={form.orgao_id} onValueChange={v => set('orgao_id', v)}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione (opcional)" /></SelectTrigger>
+                <SelectContent>{orgaos.map(o => <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>)}</SelectContent>
+              </Select>
+            )}
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>

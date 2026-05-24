@@ -7,16 +7,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import ExportModal from '@/components/exportacao/ExportModal';
 
-const buildExportFields = (getLabel) => [
+const buildExportFields = (getLabel, orgaosMap, oportunidadesMap) => [
   { key: 'titulo', label: 'Título' },
   { key: 'tipo', label: 'Tipo' },
   { key: 'descricao', label: 'Descrição' },
+  { key: 'resultado', label: 'Resultado' },
   { key: 'status', label: 'Status' },
   { key: 'prioridade', label: 'Prioridade' },
   { key: 'data_vencimento', label: 'Vencimento' },
   { key: 'responsavel_id', label: 'Responsável', transform: v => getLabel(v) },
   { key: 'created_by', label: 'Criador', transform: v => getLabel(v) },
   { key: 'concluida_em', label: 'Concluída em' },
+  { key: 'orgao_id', label: 'Órgão', transform: v => orgaosMap[v] || v || '—' },
+  { key: 'oportunidade_id', label: 'Oportunidade', transform: v => oportunidadesMap[v] || v || '—' },
 ];
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -39,6 +42,8 @@ export default function TarefasList() {
   const [usuariosResponsavel, setUsuariosResponsavel] = useState([]);
   const [usuariosMap, setUsuariosMap] = useState({});
   const [data, setData] = useState([]);
+  const [orgaos, setOrgaos] = useState([]);
+  const [oportunidades, setOportunidades] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -60,6 +65,16 @@ export default function TarefasList() {
     // fallback para admin que usa useUsuariosMap
     return getLabelAdmin(email);
   };
+
+  useEffect(() => {
+    Promise.all([
+      base44.entities.OrgaoPublico.list(),
+      base44.functions.invoke('getOportunidadesHierarquia', {}).then(r => r.data?.oportunidades || []),
+    ]).then(([orgs, ops]) => {
+      setOrgaos(orgs);
+      setOportunidades(ops);
+    });
+  }, []);
 
   const load = async () => {
     if (!user) return;
@@ -125,8 +140,13 @@ export default function TarefasList() {
     }
   }, [usuariosAdmin]);
 
+  const orgaosMap = Object.fromEntries(orgaos.map(o => [o.id, o.nome]));
+  const oportunidadesMap = Object.fromEntries(oportunidades.map(o => [o.id, o.nome]));
+
   const filtered = data.filter(d => {
-    const matchSearch = [d.titulo, d.tipo].some(f => f?.toLowerCase().includes(search.toLowerCase()));
+    const orgaoNome = orgaosMap[d.orgao_id] || '';
+    const opNome = oportunidadesMap[d.oportunidade_id] || '';
+    const matchSearch = [d.titulo, d.tipo, orgaoNome, opNome].some(f => f?.toLowerCase().includes(search.toLowerCase()));
     const matchStatus = filterStatus === 'all' || d.status === filterStatus;
     const matchPrioridade = filterPrioridade === 'all' || d.prioridade === filterPrioridade;
     const matchCriador = filterCriador === 'all' || d.created_by === filterCriador;
@@ -274,7 +294,7 @@ export default function TarefasList() {
         open={showExport}
         onClose={() => setShowExport(false)}
         data={filtered}
-        fields={buildExportFields(getLabel)}
+        fields={buildExportFields(getLabel, orgaosMap, oportunidadesMap)}
         title="Tarefas"
       />
     </div>
