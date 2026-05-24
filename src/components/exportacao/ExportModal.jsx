@@ -62,7 +62,18 @@ export default function ExportModal({ open, onClose, data = [], fields = [], tit
       const doc = new jsPDF({ orientation: isLandscape ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
       const pageW = doc.internal.pageSize.getWidth();
       const margin = 14;
-      const colW = (pageW - margin * 2) / activeFields.length;
+
+      // Calcula larguras proporcionais respeitando o campo `widthFactor` (padrão 1)
+      const totalUnits = activeFields.reduce((s, f) => s + (f.widthFactor || 1), 0);
+      const unitW = (pageW - margin * 2) / totalUnits;
+      // Posição X e largura de cada coluna
+      const colMeta = activeFields.reduce((acc, f) => {
+        const prev = acc.length ? acc[acc.length - 1] : null;
+        const x = prev ? prev.x + prev.w : margin;
+        const w = (f.widthFactor || 1) * unitW;
+        acc.push({ x, w });
+        return acc;
+      }, []);
 
       // Header
       doc.setFillColor(255, 119, 0);
@@ -84,22 +95,21 @@ export default function ExportModal({ open, onClose, data = [], fields = [], tit
       doc.setFontSize(7);
       doc.setFont(undefined, 'bold');
       activeFields.forEach((f, i) => {
-        doc.text(f.label, margin + i * colW + 1, y + 4.5, { maxWidth: colW - 2 });
+        doc.text(f.label, colMeta[i].x + 1, y + 4.5, { maxWidth: colMeta[i].w - 2 });
       });
       y += rowH;
 
       // Rows
       doc.setFont(undefined, 'normal');
       doc.setFontSize(7);
-      const lineH = 3.5; // height per text line in mm
-      const cellPadV = 2; // vertical padding top+bottom
+      const lineH = 3.5;
+      const cellPadV = 2;
 
       data.forEach((row, ri) => {
-        // Calculate required height for this row based on wrapped text lines
         let maxLines = 1;
         activeFields.forEach((f, i) => {
           const txt = cellValue(row, f);
-          const lines = doc.splitTextToSize(txt, colW - 2);
+          const lines = doc.splitTextToSize(txt, colMeta[i].w - 2);
           if (lines.length > maxLines) maxLines = lines.length;
         });
         const dynamicRowH = maxLines * lineH + cellPadV * 2;
@@ -115,10 +125,9 @@ export default function ExportModal({ open, onClose, data = [], fields = [], tit
         doc.setTextColor(40, 40, 40);
         activeFields.forEach((f, i) => {
           const txt = cellValue(row, f);
-          const lines = doc.splitTextToSize(txt, colW - 2);
-          doc.text(lines, margin + i * colW + 1, y + cellPadV + lineH * 0.8);
+          const lines = doc.splitTextToSize(txt, colMeta[i].w - 2);
+          doc.text(lines, colMeta[i].x + 1, y + cellPadV + lineH * 0.8);
         });
-        // row border
         doc.setDrawColor(230, 230, 230);
         doc.line(margin, y + dynamicRowH, pageW - margin, y + dynamicRowH);
         y += dynamicRowH;

@@ -10,8 +10,8 @@ import ExportModal from '@/components/exportacao/ExportModal';
 const buildExportFields = (getLabel, orgaosMap, oportunidadesMap) => [
   { key: 'titulo', label: 'Título' },
   { key: 'tipo', label: 'Tipo' },
-  { key: 'descricao', label: 'Descrição' },
-  { key: 'resultado', label: 'Resultado' },
+  { key: 'descricao', label: 'Descrição', widthFactor: 2 },
+  { key: 'resultado', label: 'Resultado', widthFactor: 2 },
   { key: 'status', label: 'Status' },
   { key: 'prioridade', label: 'Prioridade' },
   { key: 'data_vencimento', label: 'Vencimento' },
