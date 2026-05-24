@@ -111,7 +111,7 @@ export default function KanbanBANT({ oportunidades = [], bantScores = [], isLoad
                         to={`/oportunidades/${op.id}`}
                         className={`block bg-white rounded-lg border ${col.cardBorder} px-3 py-2 hover:shadow-md transition-shadow`}
                       >
-                        <p className="text-xs font-medium text-foreground line-clamp-2 leading-tight">{op.nome}</p>
+                        <p className="text-xs font-medium text-foreground leading-tight break-words">{op.nome}</p>
                         {op.valor_estimado && (
                           <p className="text-xs text-muted-foreground mt-1">{fmt(op.valor_estimado)}</p>
                         )}

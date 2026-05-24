@@ -141,66 +141,59 @@ export default function Dashboard() {
     try {
       const { default: jsPDF } = await import('jspdf');
       const { default: html2canvas } = await import('html2canvas');
-      const el = pdfRef.current;
-      if (!el) return;
+      const container = pdfRef.current;
+      if (!container) return;
 
-      // A4 portrait dimensions in px at 96dpi
-      const A4_W_MM = 210;
-      const A4_H_MM = 297;
-      const MM_TO_PT = 2.8346;
-      const A4_W_PT = A4_W_MM * MM_TO_PT;
-      const A4_H_PT = A4_H_MM * MM_TO_PT;
-
-      const canvas = await html2canvas(el, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#f8fafc' });
-      const imgData = canvas.toDataURL('image/png');
-
-      const imgW = canvas.width;
-      const imgH = canvas.height;
-
-      // Scale to fit A4 width
-      const ratio = A4_W_PT / imgW;
-      const scaledH = imgH * ratio;
+      const A4_W_PT = 595.28;  // A4 portrait width in pt
+      const A4_H_PT = 841.89;  // A4 portrait height in pt
+      const HEADER_H = 36;
+      const MARGIN = 12;
+      const CONTENT_H = A4_H_PT - HEADER_H - MARGIN; // usable height per page after header
 
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+      const dateStr = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-      // Title page header
-      const MARGIN = 20;
-      const HEADER_H = 36;
-
-      let pageH = A4_H_PT - HEADER_H - MARGIN;
-      let srcY = 0;
-      let firstPage = true;
-
-      while (srcY < imgH) {
-        if (!firstPage) pdf.addPage();
-
-        // Draw header on each page
-        pdf.setFillColor(195 * 0.6, 195 * 0.85, 195);
-        pdf.setFillColor(22, 95, 120); // sidebar color approx
+      const drawHeader = () => {
+        pdf.setFillColor(22, 95, 120);
         pdf.rect(0, 0, A4_W_PT, HEADER_H, 'F');
         pdf.setFontSize(13);
         pdf.setTextColor(255, 255, 255);
         pdf.setFont('helvetica', 'bold');
         pdf.text('Dashboard CRM', MARGIN, HEADER_H / 2 + 4);
-        pdf.setFontSize(9);
+        pdf.setFontSize(8.5);
         pdf.setFont('helvetica', 'normal');
         pdf.text(`Visão: ${subtitleLabel}`, A4_W_PT / 2, HEADER_H / 2 + 4, { align: 'center' });
-        const dateStr = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         pdf.text(`Gerado em ${dateStr}`, A4_W_PT - MARGIN, HEADER_H / 2 + 4, { align: 'right' });
+      };
 
-        // Slice of the image for this page
-        const sliceH = Math.min(pageH / ratio, imgH - srcY);
-        const tmpCanvas = document.createElement('canvas');
-        tmpCanvas.width = imgW;
-        tmpCanvas.height = sliceH;
-        const ctx = tmpCanvas.getContext('2d');
-        ctx.drawImage(canvas, 0, srcY, imgW, sliceH, 0, 0, imgW, sliceH);
-        const sliceData = tmpCanvas.toDataURL('image/png');
+      // Captura cada bloco filho direto do container
+      const blocos = Array.from(container.children);
+      let cursorY = HEADER_H + MARGIN; // posição atual na página
+      let firstPage = true;
 
-        pdf.addImage(sliceData, 'PNG', 0, HEADER_H, A4_W_PT, sliceH * ratio);
+      for (const bloco of blocos) {
+        const canvas = await html2canvas(bloco, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff' });
+        const imgW = canvas.width;
+        const imgH = canvas.height;
+        // Escala para caber na largura A4
+        const ratio = A4_W_PT / imgW;
+        const scaledH = imgH * ratio;
 
-        srcY += sliceH;
-        firstPage = false;
+        // Se não cabe na página atual, começa nova página
+        if (!firstPage && cursorY + scaledH > A4_H_PT - MARGIN) {
+          pdf.addPage();
+          cursorY = HEADER_H + MARGIN;
+          drawHeader();
+        }
+
+        if (firstPage) {
+          drawHeader();
+          firstPage = false;
+        }
+
+        const imgData = canvas.toDataURL('image/png');
+        pdf.addImage(imgData, 'PNG', 0, cursorY, A4_W_PT, scaledH);
+        cursorY += scaledH + 8; // 8pt de espaço entre blocos
       }
 
       pdf.save(`dashboard-${new Date().toISOString().slice(0, 10)}.pdf`);

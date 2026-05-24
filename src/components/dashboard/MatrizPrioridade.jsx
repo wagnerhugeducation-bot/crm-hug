@@ -326,7 +326,7 @@ export default function MatrizPrioridade({ oportunidades, bantScores, tarefas, o
         <div className="flex flex-wrap gap-2 items-center">
           <Filter className="w-3.5 h-3.5 text-muted-foreground" />
           <Select value={filtroResponsavel} onValueChange={setFiltroResponsavel}>
-            <SelectTrigger className="h-7 text-xs w-36"><SelectValue placeholder="Responsável" /></SelectTrigger>
+            <SelectTrigger className="h-7 text-xs min-w-[140px]"><SelectValue placeholder="Responsável" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos Responsáveis</SelectItem>
               {(usuarios || []).map(u => (
@@ -335,7 +335,7 @@ export default function MatrizPrioridade({ oportunidades, bantScores, tarefas, o
             </SelectContent>
           </Select>
           <Select value={filtroEtapa} onValueChange={setFiltroEtapa}>
-            <SelectTrigger className="h-7 text-xs w-32"><SelectValue placeholder="Etapa" /></SelectTrigger>
+            <SelectTrigger className="h-7 text-xs min-w-[120px]"><SelectValue placeholder="Etapa" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas Etapas</SelectItem>
               {['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento'].map(v => (
@@ -344,14 +344,14 @@ export default function MatrizPrioridade({ oportunidades, bantScores, tarefas, o
             </SelectContent>
           </Select>
           <Select value={filtroModalidade} onValueChange={setFiltroModalidade}>
-            <SelectTrigger className="h-7 text-xs w-36"><SelectValue placeholder="Modalidade" /></SelectTrigger>
+            <SelectTrigger className="h-7 text-xs min-w-[140px]"><SelectValue placeholder="Modalidade" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas Modalidades</SelectItem>
               {modalidades.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={filtroSaude} onValueChange={setFiltroSaude}>
-            <SelectTrigger className="h-7 text-xs w-28"><SelectValue placeholder="Saúde" /></SelectTrigger>
+            <SelectTrigger className="h-7 text-xs min-w-[110px]"><SelectValue placeholder="Saúde" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Toda Saúde</SelectItem>
               <SelectItem value="verde">🟢 Ativa</SelectItem>

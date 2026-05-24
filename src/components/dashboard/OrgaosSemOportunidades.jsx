@@ -60,7 +60,7 @@ export default function OrgaosSemOportunidades({ orgaos, oportunidades, contatos
                 <tr key={o.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-4 py-2.5">
                     <div>
-                      <p className="font-medium text-foreground truncate max-w-[200px]">{o.nome}</p>
+                      <p className="font-medium text-foreground break-words">{o.nome}</p>
                       {o.cidade && <p className="text-muted-foreground text-[10px]">{o.cidade}{o.estado ? ` / ${o.estado}` : ''}</p>}
                     </div>
                   </td>
