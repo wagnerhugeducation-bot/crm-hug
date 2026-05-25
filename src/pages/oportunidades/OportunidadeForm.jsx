@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import PageHeader from '@/components/ui/PageHeader';
 import { toast } from 'sonner';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
@@ -350,12 +350,23 @@ export default function OportunidadeForm() {
               />
             </div>
             <div className="sm:col-span-2">
-              <Label>Observações</Label>
+              <div className="flex items-center justify-between mb-1">
+                <Label>Observações</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open('https://chatgpt.com/g/g-6a139a1f393081918b1e22a730a70db8-inteligencia-de-governo', '_blank')}
+                  className="gap-1.5 text-xs h-7 px-2.5 border-primary/40 text-primary hover:bg-primary/5"
+                >
+                  <Sparkles className="w-3 h-3" /> Geração por IA
+                </Button>
+              </div>
               <Textarea
                 value={form.notas}
                 onChange={e => set('notas', e.target.value)}
                 placeholder="Informações adicionais sobre a oportunidade..."
-                className="mt-1 resize-none"
+                className="resize-none"
                 rows={3}
               />
             </div>

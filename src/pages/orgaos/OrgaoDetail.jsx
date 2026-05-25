@@ -57,42 +57,46 @@ export default function OrgaoDetail() {
         }
       />
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Info card */}
-        <div className="bg-card rounded-xl border border-border p-5 space-y-4">
-          <div className="flex items-center justify-between">
+      <div className="space-y-6">
+        {/* Info card — largura total */}
+        <div className="bg-card rounded-xl border border-border p-5">
+          <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold">Informações</h3>
             <StatusBadge value={orgao.relacionamento_status} />
           </div>
-          <InfoRow label="CNPJ" value={orgao.cnpj} />
-          <InfoRow label="Esfera" value={orgao.esfera} />
-          <InfoRow label="Poder" value={orgao.poder} />
-          <InfoRow label="Cidade / Estado" value={orgao.cidade ? `${orgao.cidade} / ${orgao.estado}` : null} />
-          <InfoRow label="Potencial do Órgão" value={orgao.potencial_orgao ? `R$ ${Number(orgao.potencial_orgao).toLocaleString('pt-BR')}` : null} />
-          <InfoRow label="Responsável Interno" value={orgao.responsavel_id ? getLabel(orgao.responsavel_id) : null} />
-          <InfoRow label="Endereço" value={orgao.endereco} />
-          {orgao.telefone && (
-            <a href={`tel:${orgao.telefone}`} className="flex items-center gap-2 text-sm text-primary hover:underline">
-              <Phone className="w-3.5 h-3.5" /> {orgao.telefone}
-            </a>
-          )}
-          {orgao.email_institucional && (
-            <a href={`mailto:${orgao.email_institucional}`} className="flex items-center gap-2 text-sm text-primary hover:underline">
-              <Mail className="w-3.5 h-3.5" /> {orgao.email_institucional}
-            </a>
-          )}
-          {orgao.site && (
-            <a href={orgao.site} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
-              <Globe className="w-3.5 h-3.5" /> Site oficial
-            </a>
-          )}
-          {orgao.portal_compras && (
-            <a href={orgao.portal_compras} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
-              <Globe className="w-3.5 h-3.5" /> Portal de Compras
-            </a>
-          )}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <InfoRow label="CNPJ" value={orgao.cnpj} />
+            <InfoRow label="Esfera" value={orgao.esfera} />
+            <InfoRow label="Poder" value={orgao.poder} />
+            <InfoRow label="Cidade / Estado" value={orgao.cidade ? `${orgao.cidade} / ${orgao.estado}` : null} />
+            <InfoRow label="Potencial do Órgão" value={orgao.potencial_orgao ? `R$ ${Number(orgao.potencial_orgao).toLocaleString('pt-BR')}` : null} />
+            <InfoRow label="Responsável Interno" value={orgao.responsavel_id ? getLabel(orgao.responsavel_id) : null} />
+            <InfoRow label="Endereço" value={orgao.endereco} />
+            <div className="flex flex-col gap-1.5">
+              {orgao.telefone && (
+                <a href={`tel:${orgao.telefone}`} className="flex items-center gap-2 text-sm text-primary hover:underline">
+                  <Phone className="w-3.5 h-3.5" /> {orgao.telefone}
+                </a>
+              )}
+              {orgao.email_institucional && (
+                <a href={`mailto:${orgao.email_institucional}`} className="flex items-center gap-2 text-sm text-primary hover:underline">
+                  <Mail className="w-3.5 h-3.5" /> {orgao.email_institucional}
+                </a>
+              )}
+              {orgao.site && (
+                <a href={orgao.site} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
+                  <Globe className="w-3.5 h-3.5" /> Site oficial
+                </a>
+              )}
+              {orgao.portal_compras && (
+                <a href={orgao.portal_compras} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
+                  <Globe className="w-3.5 h-3.5" /> Portal de Compras
+                </a>
+              )}
+            </div>
+          </div>
           {orgao.notas && (
-            <div>
+            <div className="mt-4 pt-4 border-t border-border">
               <p className="text-xs text-muted-foreground mb-1">Observações</p>
               <p className="text-sm text-foreground whitespace-pre-wrap">{orgao.notas}</p>
             </div>
@@ -100,7 +104,7 @@ export default function OrgaoDetail() {
         </div>
 
         {/* Contatos + Oportunidades */}
-        <div className="lg:col-span-2 space-y-5">
+        <div className="space-y-5">
           <div className="bg-card rounded-xl border border-border">
             <div className="flex items-center justify-between px-5 py-4 border-b border-border">
               <div className="flex items-center gap-2">
