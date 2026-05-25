@@ -101,22 +101,6 @@
       "type": "string",
       "description": "Observa\u00e7\u00f5es gerais"
     },
-    "mat_bercario1": {
-      "type": "number",
-      "description": "Matr\u00edculas - Ber\u00e7\u00e1rio 1"
-    },
-    "mat_bercario2": {
-      "type": "number",
-      "description": "Matr\u00edculas - Ber\u00e7\u00e1rio 2"
-    },
-    "mat_maternal1": {
-      "type": "number",
-      "description": "Matr\u00edculas - Maternal I"
-    },
-    "mat_maternal2": {
-      "type": "number",
-      "description": "Matr\u00edculas - Maternal II"
-    },
     "mat_etapa1": {
       "type": "number",
       "description": "Matr\u00edculas - Etapa I"
@@ -173,9 +157,61 @@
       "type": "number",
       "description": "Matr\u00edculas - 3\u00ba Ano EM"
     },
-    "doc_bercario": {
+    "turmas_etapa1": {
       "type": "number",
-      "description": "Docentes - Ber\u00e7\u00e1rio"
+      "description": "Turmas - Etapa I"
+    },
+    "turmas_etapa2": {
+      "type": "number",
+      "description": "Turmas - Etapa II"
+    },
+    "turmas_1ano": {
+      "type": "number",
+      "description": "Turmas - 1\u00ba Ano EF"
+    },
+    "turmas_2ano": {
+      "type": "number",
+      "description": "Turmas - 2\u00ba Ano EF"
+    },
+    "turmas_3ano": {
+      "type": "number",
+      "description": "Turmas - 3\u00ba Ano EF"
+    },
+    "turmas_4ano": {
+      "type": "number",
+      "description": "Turmas - 4\u00ba Ano EF"
+    },
+    "turmas_5ano": {
+      "type": "number",
+      "description": "Turmas - 5\u00ba Ano EF"
+    },
+    "turmas_6ano": {
+      "type": "number",
+      "description": "Turmas - 6\u00ba Ano EF"
+    },
+    "turmas_7ano": {
+      "type": "number",
+      "description": "Turmas - 7\u00ba Ano EF"
+    },
+    "turmas_8ano": {
+      "type": "number",
+      "description": "Turmas - 8\u00ba Ano EF"
+    },
+    "turmas_9ano": {
+      "type": "number",
+      "description": "Turmas - 9\u00ba Ano EF"
+    },
+    "turmas_em1": {
+      "type": "number",
+      "description": "Turmas - 1\u00ba Ano EM"
+    },
+    "turmas_em2": {
+      "type": "number",
+      "description": "Turmas - 2\u00ba Ano EM"
+    },
+    "turmas_em3": {
+      "type": "number",
+      "description": "Turmas - 3\u00ba Ano EM"
     },
     "doc_etapa1": {
       "type": "number",
@@ -224,6 +260,32 @@
     "ideb_ano": {
       "type": "number",
       "description": "Ano de refer\u00eancia do IDEB"
+    },
+    "alunos_neurodivergentes": {
+      "type": "number",
+      "description": "N\u00famero de Alunos com Neuro-diverg\u00eancia"
+    },
+    "alunos_deficiencia": {
+      "type": "number",
+      "description": "N\u00famero de Alunos com Defici\u00eancia"
+    },
+    "profissionais_aee": {
+      "type": "number",
+      "description": "N\u00famero de Profissionais AEE"
+    },
+    "tipos_necessidades": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tipos de necessidades identificadas"
+    },
+    "modalidades_ensino": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Modalidades de Ensino"
     }
   },
   "required": [

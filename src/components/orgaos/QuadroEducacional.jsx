@@ -1,29 +1,25 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 
-const MATRICULAS_CICLOS = [
-  { key: 'mat_bercario1', label: 'Berçário 1' },
-  { key: 'mat_bercario2', label: 'Berçário 2' },
-  { key: 'mat_maternal1', label: 'Maternal I' },
-  { key: 'mat_maternal2', label: 'Maternal II' },
-  { key: 'mat_etapa1', label: 'Etapa I' },
-  { key: 'mat_etapa2', label: 'Etapa II' },
-  { key: 'mat_1ano', label: '1º Ano EF' },
-  { key: 'mat_2ano', label: '2º Ano EF' },
-  { key: 'mat_3ano', label: '3º Ano EF' },
-  { key: 'mat_4ano', label: '4º Ano EF' },
-  { key: 'mat_5ano', label: '5º Ano EF' },
-  { key: 'mat_6ano', label: '6º Ano EF' },
-  { key: 'mat_7ano', label: '7º Ano EF' },
-  { key: 'mat_8ano', label: '8º Ano EF' },
-  { key: 'mat_9ano', label: '9º Ano EF' },
-  { key: 'mat_em1', label: '1º Ano EM' },
-  { key: 'mat_em2', label: '2º Ano EM' },
-  { key: 'mat_em3', label: '3º Ano EM' },
+const CICLOS = [
+  { key: 'etapa1', label: 'Etapa I' },
+  { key: 'etapa2', label: 'Etapa II' },
+  { key: '1ano', label: '1º Ano EF' },
+  { key: '2ano', label: '2º Ano EF' },
+  { key: '3ano', label: '3º Ano EF' },
+  { key: '4ano', label: '4º Ano EF' },
+  { key: '5ano', label: '5º Ano EF' },
+  { key: '6ano', label: '6º Ano EF' },
+  { key: '7ano', label: '7º Ano EF' },
+  { key: '8ano', label: '8º Ano EF' },
+  { key: '9ano', label: '9º Ano EF' },
+  { key: 'em1', label: '1º Ano EM' },
+  { key: 'em2', label: '2º Ano EM' },
+  { key: 'em3', label: '3º Ano EM' },
 ];
 
 const DOCENTES_SEGMENTOS = [
-  { key: 'doc_bercario', label: 'Berçário' },
   { key: 'doc_etapa1', label: 'Etapa I' },
   { key: 'doc_etapa2', label: 'Etapa II' },
   { key: 'doc_ef1', label: 'Fundamental 1' },
@@ -35,6 +31,16 @@ const ESCOLAS_NIVEIS = [
   { key: 'esc_infantil', label: 'Ed. Infantil' },
   { key: 'esc_fundamental', label: 'Fundamental' },
   { key: 'esc_medio', label: 'Médio' },
+];
+
+const TIPOS_NECESSIDADES = ['Visual', 'Auditiva', 'Motora', 'Intelectual', 'TEA', 'Outros'];
+const MODALIDADES_ENSINO = [
+  'Educação Especial',
+  'Educação do Campo',
+  'Educação Escolar Indígena',
+  'Educação Quilombola',
+  'Educação Profissional',
+  'Outros',
 ];
 
 function NumericInput({ value, onChange, placeholder = '0' }) {
@@ -50,6 +56,30 @@ function NumericInput({ value, onChange, placeholder = '0' }) {
   );
 }
 
+function MultiCheckbox({ options, value = [], onChange }) {
+  const toggle = (opt) => {
+    const current = Array.isArray(value) ? value : [];
+    if (current.includes(opt)) {
+      onChange(current.filter(v => v !== opt));
+    } else {
+      onChange([...current, opt]);
+    }
+  };
+  return (
+    <div className="flex flex-wrap gap-x-4 gap-y-2 mt-2">
+      {options.map(opt => (
+        <label key={opt} className="flex items-center gap-2 cursor-pointer select-none">
+          <Checkbox
+            checked={Array.isArray(value) && value.includes(opt)}
+            onCheckedChange={() => toggle(opt)}
+          />
+          <span className="text-sm text-foreground">{opt}</span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
 export default function QuadroEducacional({ form, set }) {
   return (
     <div className="bg-card rounded-xl border border-border p-6 space-y-6">
@@ -60,11 +90,24 @@ export default function QuadroEducacional({ form, set }) {
       {/* Matrículas por Ciclo */}
       <div>
         <p className="text-sm font-medium text-foreground mb-3">Número de Matrículas por Ciclo</p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          {MATRICULAS_CICLOS.map(({ key, label }) => (
-            <div key={key}>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+          {CICLOS.map(({ key, label }) => (
+            <div key={`mat_${key}`}>
               <Label className="text-xs text-muted-foreground">{label}</Label>
-              <NumericInput value={form[key]} onChange={v => set(key, v)} />
+              <NumericInput value={form[`mat_${key}`]} onChange={v => set(`mat_${key}`, v)} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Turmas por Ciclo */}
+      <div>
+        <p className="text-sm font-medium text-foreground mb-3">Número de Turmas por Ciclo</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+          {CICLOS.map(({ key, label }) => (
+            <div key={`turmas_${key}`}>
+              <Label className="text-xs text-muted-foreground">{label}</Label>
+              <NumericInput value={form[`turmas_${key}`]} onChange={v => set(`turmas_${key}`, v)} />
             </div>
           ))}
         </div>
@@ -73,7 +116,7 @@ export default function QuadroEducacional({ form, set }) {
       {/* Número de Docentes */}
       <div>
         <p className="text-sm font-medium text-foreground mb-3">Número de Docentes por Segmento</p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
           {DOCENTES_SEGMENTOS.map(({ key, label }) => (
             <div key={key}>
               <Label className="text-xs text-muted-foreground">{label}</Label>
@@ -94,6 +137,45 @@ export default function QuadroEducacional({ form, set }) {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Inclusão */}
+      <div>
+        <p className="text-sm font-medium text-foreground mb-3">Inclusão e Diversidade</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div>
+            <Label className="text-xs text-muted-foreground">Alunos com Neuro-divergência</Label>
+            <NumericInput value={form.alunos_neurodivergentes} onChange={v => set('alunos_neurodivergentes', v)} />
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Alunos com Deficiência</Label>
+            <NumericInput value={form.alunos_deficiencia} onChange={v => set('alunos_deficiencia', v)} />
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Profissionais AEE</Label>
+            <NumericInput value={form.profissionais_aee} onChange={v => set('profissionais_aee', v)} />
+          </div>
+        </div>
+      </div>
+
+      {/* Tipos de Necessidades */}
+      <div>
+        <p className="text-sm font-medium text-foreground mb-1">Tipos de Necessidades Identificadas</p>
+        <MultiCheckbox
+          options={TIPOS_NECESSIDADES}
+          value={form.tipos_necessidades}
+          onChange={v => set('tipos_necessidades', v)}
+        />
+      </div>
+
+      {/* Modalidades de Ensino */}
+      <div>
+        <p className="text-sm font-medium text-foreground mb-1">Modalidades de Ensino</p>
+        <MultiCheckbox
+          options={MODALIDADES_ENSINO}
+          value={form.modalidades_ensino}
+          onChange={v => set('modalidades_ensino', v)}
+        />
       </div>
 
       {/* IDEB */}
