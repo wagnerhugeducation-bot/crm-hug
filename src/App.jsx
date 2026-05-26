@@ -35,6 +35,7 @@ import DocumentosList from '@/pages/documentos/DocumentosList';
 import DocumentoForm from '@/pages/documentos/DocumentoForm';
 import Configuracoes from '@/pages/Configuracoes';
 import Relatorios from '@/pages/Relatorios';
+import DossieEstrategico from '@/pages/DossieEstrategico';
 import UsuariosList from '@/pages/usuarios/UsuariosList';
 import UsuarioForm from '@/pages/usuarios/UsuarioForm';
 
@@ -122,6 +123,7 @@ const AuthenticatedApp = () => {
 
         <Route path="/configuracoes" element={<Configuracoes />} />
         <Route path="/relatorios" element={<Relatorios />} />
+        <Route path="/dossie" element={<DossieEstrategico />} />
       </Route>
 
       <Route path="*" element={<PageNotFound />} />
