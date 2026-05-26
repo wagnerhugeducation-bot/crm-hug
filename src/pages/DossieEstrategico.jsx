@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Search, Printer, ChevronLeft, FileBarChart2, AlertTriangle } from 'lucide-react';
+import { Loader2, Search, Download, ChevronLeft, FileBarChart2, AlertTriangle } from 'lucide-react';
+import jsPDF from 'jspdf';
 
 const UFS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
 
@@ -73,13 +74,221 @@ export default function DossieEstrategico() {
     try {
       const res = await base44.functions.invoke('backend', { municipio, uf });
       setDossie(res.data);
+      // PDF gerado automaticamente após receber os dados
+      setTimeout(() => gerarPDFComDados(res.data), 300);
     } catch (e) {
       setError('Erro ao gerar dossiê: ' + (e?.response?.data?.error || e.message));
     }
     setLoading(false);
   };
 
-  const imprimir = () => window.print();
+  const gerarPDFComDados = (dados) => {
+    const s1 = dados?.secao1;
+    const s2 = dados?.secao2;
+    const s3 = dados?.secao3;
+    const s4 = dados?.secao4;
+    const s5 = dados?.secao5;
+    const s6 = dados?.secao6;
+    const s7 = dados?.secao7;
+    const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+    const pageW = 210;
+    const marginL = 15;
+    const marginR = 15;
+    const contentW = pageW - marginL - marginR;
+    let y = 0;
+
+    const checkPage = (needed = 10) => {
+      if (y + needed > 275) { doc.addPage(); y = 15; }
+    };
+
+    const addTitle = (text) => {
+      checkPage(12);
+      doc.setFillColor(230, 90, 10);
+      doc.rect(marginL, y, contentW, 8, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(255, 255, 255);
+      doc.text(text.toUpperCase(), marginL + 3, y + 5.5);
+      y += 11;
+      doc.setTextColor(30, 30, 30);
+    };
+
+    const addRow = (label, value) => {
+      if (!value || value === '...' || value === 'Não localizado em fonte oficial consultada.') return;
+      const lines = doc.splitTextToSize(`${value}`, contentW - 42);
+      const h = Math.max(7, lines.length * 5 + 3);
+      checkPage(h);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text(label, marginL, y + 4);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(30, 30, 30);
+      doc.text(lines, marginL + 42, y + 4);
+      y += h;
+      doc.setDrawColor(220, 220, 220);
+      doc.line(marginL, y, marginL + contentW, y);
+      y += 1;
+    };
+
+    const addText = (text) => {
+      if (!text) return;
+      const lines = doc.splitTextToSize(text, contentW);
+      checkPage(lines.length * 5 + 4);
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(8.5);
+      doc.setTextColor(80, 80, 80);
+      doc.text(lines, marginL, y + 4);
+      y += lines.length * 5 + 5;
+    };
+
+    const addTagList = (label, items) => {
+      if (!items?.length) return;
+      checkPage(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text(label.toUpperCase(), marginL, y + 4);
+      y += 7;
+      const line = items.join('  •  ');
+      const lines = doc.splitTextToSize(line, contentW);
+      checkPage(lines.length * 5 + 2);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(30, 30, 30);
+      doc.text(lines, marginL, y + 4);
+      y += lines.length * 5 + 4;
+    };
+
+    const addBulletList = (label, items) => {
+      if (!items?.length) return;
+      checkPage(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text(label.toUpperCase(), marginL, y + 4);
+      y += 7;
+      items.forEach(item => {
+        const lines = doc.splitTextToSize(`• ${item}`, contentW);
+        checkPage(lines.length * 5 + 2);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8.5);
+        doc.setTextColor(50, 50, 50);
+        doc.text(lines, marginL + 2, y + 4);
+        y += lines.length * 5 + 2;
+      });
+      y += 2;
+    };
+
+    // --- Capa ---
+    doc.setFillColor(230, 90, 10);
+    doc.rect(0, 0, pageW, 45, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(255, 200, 150);
+    doc.text('DOSSIÊ ESTRATÉGICO EXECUTIVO', marginL, 18);
+    doc.setFontSize(22);
+    doc.setTextColor(255, 255, 255);
+    doc.text(`${dados.municipio} — ${dados.uf}`, marginL, 30);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(255, 220, 190);
+    doc.text('Rede Municipal de Ensino', marginL, 38);
+    y = 52;
+
+    // Seção 7 — Classificação
+    if (s7) {
+      addTitle('Classificação Estratégica');
+      addRow('Nota', `${s7.nota} — ${s7.classificacao}`);
+      addText(s7.resumo);
+    }
+
+    // Seção 1 — Mapa Político
+    if (s1) {
+      addTitle('Mapa Político e Lideranças');
+      if (s1.prefeito) addRow('Prefeito(a)', `${s1.prefeito.nome} (${s1.prefeito.partido}) — ${s1.prefeito.perfil}`);
+      if (s1.vice_prefeito) addRow('Vice-Prefeito(a)', `${s1.vice_prefeito.nome} (${s1.vice_prefeito.partido})`);
+      addRow('Chefe de Gabinete', s1.chefe_gabinete?.nome);
+      addRow('Secretário(a) de Governo', s1.secretario_governo?.nome);
+      if (s1.secretario_educacao) addRow('Secretário(a) de Educação', `${s1.secretario_educacao.nome} — ${s1.secretario_educacao.perfil}`);
+      if (s1.deputado_federal) addRow('Dep. Federal mais votado', `${s1.deputado_federal.nome} (${s1.deputado_federal.partido}) — ${s1.deputado_federal.votos} votos`);
+      if (s1.deputado_estadual) addRow('Dep. Estadual mais votado', `${s1.deputado_estadual.nome} (${s1.deputado_estadual.partido}) — ${s1.deputado_estadual.votos} votos`);
+      addText(s1.leitura_politica);
+    }
+
+    // Seção 2 — Perfil Secretaria
+    if (s2) {
+      addTitle('Perfil da Secretaria de Educação');
+      addRow('Estrutura', s2.estrutura);
+      addRow('Maturidade', s2.maturidade);
+      addRow('Abertura a fornecedores', s2.abertura_fornecedores);
+      addTagList('Principais dores', s2.dores);
+    }
+
+    // Seção 3 — Indicadores
+    if (s3) {
+      addTitle('Indicadores Educacionais');
+      addRow('Total de Alunos', s3.total_alunos);
+      addRow('Total de Escolas', s3.total_escolas);
+      addRow('IDEB', s3.ideb);
+      addRow('Média Nacional', s3.media_nacional);
+      addRow('Média Estadual', s3.media_estadual);
+      addRow('Creche', s3.creche);
+      addRow('Pré-escola', s3.pre_escola);
+      addRow('Fundamental', s3.fundamental);
+      addTagList('Destaques IDEB', s3.destaques_ideb);
+      addText(s3.interpretacao);
+    }
+
+    // Seção 4 — Socioemocional
+    if (s4) {
+      addTitle('Educação Socioemocional e Inclusão');
+      addRow('Grau de urgência', s4.grau_urgencia);
+      if (s4.programas?.length) {
+        s4.programas.forEach(p => addRow(p.nome, p.descricao));
+      }
+      addTagList('Lacunas identificadas', s4.lacunas);
+      addText(s4.interpretacao_comercial);
+    }
+
+    // Seção 5 — Orçamento
+    if (s5) {
+      addTitle('Orçamento e Saúde Financeira');
+      addRow('Orçamento Total', s5.orcamento_total);
+      addRow('Orçamento Educação', s5.orcamento_educacao);
+      addRow('Percentual Educação', s5.percentual);
+      addRow('Dívida / restrições', s5.divida);
+      addBulletList('Histórico', s5.historico);
+      addText(s5.leitura_financeira);
+    }
+
+    // Seção 6 — Estratégia Comercial
+    if (s6) {
+      addTitle('Estratégia Comercial');
+      addRow('Porta de entrada', s6.porta_entrada);
+      addRow('Estratégia política', s6.estrategia_politica);
+      addRow('Estratégia emenda', s6.estrategia_emenda);
+      addRow('Narrativa de valor', s6.narrativa_valor);
+      addRow('Timing', s6.timing);
+      addTagList('Stakeholders-chave', s6.stakeholders);
+      addBulletList('Riscos', s6.riscos);
+    }
+
+    // Rodapé em todas as páginas
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(150, 150, 150);
+      doc.text(`Dossiê Estratégico — ${dados.municipio}/${dados.uf} — HUG Life Skills Education`, marginL, 290);
+      doc.text(`Página ${i} de ${totalPages}`, pageW - marginR, 290, { align: 'right' });
+    }
+
+    const nomeArquivo = `Dossie_${dados.municipio.replace(/\s+/g, '_')}_${dados.uf}.pdf`;
+    doc.save(nomeArquivo);
+  };
 
   const s1 = dossie?.secao1;
   const s2 = dossie?.secao2;
@@ -88,6 +297,8 @@ export default function DossieEstrategico() {
   const s5 = dossie?.secao5;
   const s6 = dossie?.secao6;
   const s7 = dossie?.secao7;
+
+
 
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6">
@@ -161,8 +372,8 @@ export default function DossieEstrategico() {
               <Button variant="outline" size="sm" className="gap-2" onClick={() => setDossie(null)}>
                 <ChevronLeft className="w-4 h-4" /> Novo dossiê
               </Button>
-              <Button variant="outline" size="sm" className="gap-2" onClick={imprimir}>
-                <Printer className="w-4 h-4" /> Imprimir / PDF
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => gerarPDFComDados(dossie)}>
+                <Download className="w-4 h-4" /> Baixar PDF
               </Button>
             </div>
 
