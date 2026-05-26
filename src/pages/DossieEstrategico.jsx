@@ -70,8 +70,12 @@ export default function DossieEstrategico() {
     setError('');
     setLoading(true);
     setDossie(null);
-    const res = await base44.functions.invoke('backend', { municipio, uf });
-    setDossie(res.data);
+    try {
+      const res = await base44.functions.invoke('backend', { municipio, uf });
+      setDossie(res.data);
+    } catch (e) {
+      setError('Erro ao gerar dossiê: ' + (e?.response?.data?.error || e.message));
+    }
     setLoading(false);
   };
 
