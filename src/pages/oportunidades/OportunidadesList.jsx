@@ -43,6 +43,7 @@ export default function OportunidadesList() {
   const { usuarios, getLabel } = useUsuariosMap();
   const [data, setData] = useState([]);
   const [orgaos, setOrgaos] = useState({});
+  const [orgaoPotencialMap, setOrgaoPotencialMap] = useState({});
   const [bantMap, setBantMap] = useState({});
   const [ultimaTarefaMap, setUltimaTarefaMap] = useState({});
   const [isLoading, setIsLoading] = useState(true);
@@ -77,8 +78,10 @@ export default function OportunidadesList() {
     );
     setModalidades([...LICITACOES_PADRAO, ...modList.map((m) => m.nome)]);
     const map = {};
-    orgList.forEach((o) => {map[o.id] = o.nome;});
+    const potencialMap = {};
+    orgList.forEach((o) => { map[o.id] = o.nome; potencialMap[o.id] = o.potencial_orgao; });
     setOrgaos(map);
+    setOrgaoPotencialMap(potencialMap);
     const bm = {};
     bantList.forEach((b) => {bm[b.oportunidade_id] = b;});
     setBantMap(bm);
@@ -164,7 +167,10 @@ export default function OportunidadesList() {
   },
   {
     key: 'potencial_oportunidade', label: 'Potencial (R$)', sortable: true,
-    render: (v) => v ? `R$ ${Number(v).toLocaleString('pt-BR')}` : '—'
+    render: (v, row) => {
+      const val = v || orgaoPotencialMap[row.orgao_id];
+      return val ? `R$ ${Number(val).toLocaleString('pt-BR')}` : '—';
+    }
   },
   {
     key: 'data_abertura', label: 'Dias Aberta', sortable: true,

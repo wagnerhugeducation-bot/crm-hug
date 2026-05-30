@@ -17,7 +17,7 @@ import { Link } from 'react-router-dom';
 import AudioRecorder from '@/components/tarefas/AudioRecorder';
 
 const defaultForm = {
-  oportunidade_id: '', orgao_id: '', titulo: '', descricao: '', resultado: '',
+  oportunidade_id: '', orgao_id: '', contatos_ids: [], titulo: '', descricao: '', resultado: '',
   tipo: '', data_vencimento: '', status: 'Pendente', prioridade: 'Média', concluida_em: ''
 };
 
@@ -33,6 +33,7 @@ export default function TarefaForm() {
   const [form, setForm] = useState(defaultForm);
   const [oportunidades, setOportunidades] = useState([]);
   const [orgaos, setOrgaos] = useState([]);
+  const [contatos, setContatos] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(isEdit);
 
@@ -45,9 +46,11 @@ export default function TarefaForm() {
       ? base44.functions.invoke('getOportunidadesHierarquia', {}).then(res => res.data?.oportunidades || [])
       : Promise.resolve([]);
     const loadOrgaos = base44.entities.OrgaoPublico.list();
-    Promise.all([loadOps, loadOrgaos]).then(([ops, orgs]) => {
+    const loadContatos = base44.entities.Contato.list();
+    Promise.all([loadOps, loadOrgaos, loadContatos]).then(([ops, orgs, conts]) => {
       setOportunidades(ops);
       setOrgaos(orgs);
+      setContatos(conts);
     });
     if (isEdit) {
       base44.entities.Tarefa.filter({ id }).then(res => {
@@ -113,7 +116,7 @@ export default function TarefaForm() {
             <Label>Oportunidade Relacionada</Label>
             <Select value={form.oportunidade_id} onValueChange={v => {
               const op = oportunidades.find(o => o.id === v);
-              setForm(f => ({ ...f, oportunidade_id: v, orgao_id: op?.orgao_id || f.orgao_id }));
+              setForm(f => ({ ...f, oportunidade_id: v, orgao_id: op?.orgao_id || f.orgao_id, contatos_ids: [] }));
             }}>
               <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione (opcional)" /></SelectTrigger>
               <SelectContent>{oportunidades.map(o => <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>)}</SelectContent>
@@ -128,12 +131,54 @@ export default function TarefaForm() {
                 value={orgaos.find(o => o.id === form.orgao_id)?.nome || '—'}
               />
             ) : (
-              <Select value={form.orgao_id} onValueChange={v => set('orgao_id', v)}>
+              <Select value={form.orgao_id} onValueChange={v => setForm(f => ({ ...f, orgao_id: v, contatos_ids: [] }))}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione (opcional)" /></SelectTrigger>
                 <SelectContent>{orgaos.map(o => <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>)}</SelectContent>
               </Select>
             )}
           </div>
+          {/* Contatos relacionados — habilitado apenas quando há órgão selecionado */}
+          <div>
+            <Label className={!form.orgao_id ? 'text-muted-foreground' : ''}>Contatos Relacionados</Label>
+            {!form.orgao_id ? (
+              <div className="mt-1 rounded-md border border-input bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                Selecione um órgão para habilitar os contatos
+              </div>
+            ) : (() => {
+              const contatosOrgao = contatos.filter(c => c.orgao_id === form.orgao_id);
+              if (contatosOrgao.length === 0) {
+                return (
+                  <div className="mt-1 rounded-md border border-input bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                    Nenhum contato cadastrado para este órgão
+                  </div>
+                );
+              }
+              return (
+                <div className="mt-1 rounded-md border border-input bg-background p-2 space-y-1 max-h-40 overflow-y-auto">
+                  {contatosOrgao.map(c => {
+                    const checked = (form.contatos_ids || []).includes(c.id);
+                    return (
+                      <label key={c.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted cursor-pointer text-sm">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => {
+                            const atual = form.contatos_ids || [];
+                            const novo = checked ? atual.filter(id => id !== c.id) : [...atual, c.id];
+                            set('contatos_ids', novo);
+                          }}
+                          className="accent-primary"
+                        />
+                        <span className="font-medium">{c.nome}</span>
+                        {c.cargo && <span className="text-muted-foreground text-xs">— {c.cargo}</span>}
+                      </label>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+          </div>
+
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <Label>Tipo</Label>
