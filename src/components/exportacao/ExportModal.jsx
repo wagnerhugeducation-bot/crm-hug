@@ -121,9 +121,8 @@ export default function ExportModal({ open, onClose, data = [], fields = [], tit
           })()
         : colMeta;
 
-      // Se contatos está selecionado, recoloca o cabeçalho usando apenas mainFields
+      // Se contatos está selecionado, redesenha o cabeçalho sem a coluna de contatos
       if (contatosField) {
-        // Redesenha header com mainFields apenas
         y = 20;
         doc.setFillColor(245, 166, 35);
         doc.rect(margin, y, pageW - margin * 2, rowH, 'F');
@@ -161,10 +160,14 @@ export default function ExportModal({ open, onClose, data = [], fields = [], tit
           y = 14;
         }
 
-        // Fundo linha principal
-        if (ri % 2 === 0) {
-          doc.setFillColor(250, 250, 250);
-          doc.rect(margin, y, pageW - margin * 2, dynamicRowH, 'F');
+        // Fundo linha principal + sub-linha unidos (sem espaço)
+        const isAlt = ri % 2 === 0;
+        if (isAlt) {
+          doc.setFillColor(220, 220, 220); // #dcdcdc
+          doc.rect(margin, y, pageW - margin * 2, dynamicRowH + subRowH, 'F');
+        } else {
+          doc.setFillColor(255, 255, 255); // #ffffff
+          doc.rect(margin, y, pageW - margin * 2, dynamicRowH + subRowH, 'F');
         }
         doc.setFont(undefined, 'normal');
         doc.setFontSize(7);
@@ -176,10 +179,8 @@ export default function ExportModal({ open, onClose, data = [], fields = [], tit
         });
         y += dynamicRowH;
 
-        // Sub-linha de contatos
+        // Sub-linha de contatos — imediatamente abaixo, sem separação
         if (hasContatos) {
-          doc.setFillColor(240, 245, 255);
-          doc.rect(margin, y, pageW - margin * 2, subRowH, 'F');
           doc.setTextColor(60, 80, 140);
           doc.setFont(undefined, 'italic');
           doc.text(contatosLines, margin + 2, y + cellPadV + lineH * 0.8);
@@ -188,7 +189,7 @@ export default function ExportModal({ open, onClose, data = [], fields = [], tit
           y += subRowH;
         }
 
-        doc.setDrawColor(230, 230, 230);
+        doc.setDrawColor(200, 200, 200);
         doc.line(margin, y, pageW - margin, y);
       });
 
