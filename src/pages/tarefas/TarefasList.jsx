@@ -7,19 +7,29 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import ExportModal from '@/components/exportacao/ExportModal';
 
-const buildExportFields = (getLabel, orgaosMap, oportunidadesMap) => [
+const buildExportFields = (getLabel, orgaosMap, oportunidadesMap, contatosMap) => [
   { key: 'titulo', label: 'Título' },
   { key: 'tipo', label: 'Tipo' },
   { key: 'descricao', label: 'Descrição', widthFactor: 2 },
   { key: 'resultado', label: 'Resultado', widthFactor: 2 },
   { key: 'status', label: 'Status' },
   { key: 'prioridade', label: 'Prioridade' },
-  { key: 'data_vencimento', label: 'Vencimento' },
+  { key: 'data_vencimento', label: 'Vencimento', transform: v => v ? new Date(v).toLocaleString('pt-BR') : '—' },
   { key: 'responsavel_id', label: 'Responsável', transform: v => getLabel(v) },
   { key: 'created_by', label: 'Criador', transform: v => getLabel(v) },
-  { key: 'concluida_em', label: 'Concluída em' },
+  { key: 'concluida_em', label: 'Concluída em', transform: v => v ? new Date(v).toLocaleString('pt-BR') : '—' },
   { key: 'orgao_id', label: 'Órgão', transform: v => orgaosMap[v] || v || '—' },
   { key: 'oportunidade_id', label: 'Oportunidade', transform: v => oportunidadesMap[v] || v || '—' },
+  {
+    key: 'contatos_ids',
+    label: 'Contatos Relacionados',
+    widthFactor: 2,
+    transform: (v) => {
+      if (!v || !Array.isArray(v) || v.length === 0) return '—';
+      const nomes = v.map(id => contatosMap[id] || id).filter(Boolean);
+      return nomes.length > 0 ? `Contatos Relacionados: ${nomes.join(', ')}` : '—';
+    }
+  },
 ];
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -44,6 +54,7 @@ export default function TarefasList() {
   const [data, setData] = useState([]);
   const [orgaos, setOrgaos] = useState([]);
   const [oportunidades, setOportunidades] = useState([]);
+  const [contatos, setContatos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -70,9 +81,11 @@ export default function TarefasList() {
     Promise.all([
       base44.entities.OrgaoPublico.list(),
       base44.functions.invoke('getOportunidadesHierarquia', {}).then(r => r.data?.oportunidades || []),
-    ]).then(([orgs, ops]) => {
+      base44.entities.Contato.list(),
+    ]).then(([orgs, ops, cts]) => {
       setOrgaos(orgs);
       setOportunidades(ops);
+      setContatos(cts);
     });
   }, []);
 
@@ -143,6 +156,7 @@ export default function TarefasList() {
 
   const orgaosMap = Object.fromEntries(orgaos.map(o => [o.id, o.nome]));
   const oportunidadesMap = Object.fromEntries(oportunidades.map(o => [o.id, o.nome]));
+  const contatosMap = Object.fromEntries(contatos.map(c => [c.id, c.nome]));
 
   const filtered = data.filter(d => {
     const orgaoNome = orgaosMap[d.orgao_id] || '';
@@ -294,8 +308,12 @@ export default function TarefasList() {
       <ExportModal
         open={showExport}
         onClose={() => setShowExport(false)}
-        data={filtered}
-        fields={buildExportFields(getLabel, orgaosMap, oportunidadesMap)}
+        data={[...filtered].sort((a, b) => {
+          const da = a.data_vencimento ? new Date(a.data_vencimento).getTime() : Infinity;
+          const db = b.data_vencimento ? new Date(b.data_vencimento).getTime() : Infinity;
+          return da - db;
+        })}
+        fields={buildExportFields(getLabel, orgaosMap, oportunidadesMap, contatosMap)}
         title="Tarefas"
       />
     </div>
