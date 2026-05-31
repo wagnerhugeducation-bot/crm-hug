@@ -105,32 +105,91 @@ export default function ExportModal({ open, onClose, data = [], fields = [], tit
       const lineH = 3.5;
       const cellPadV = 2;
 
+      // Separa campos normais do campo especial de contatos_ids (subrow)
+      const contatosField = activeFields.find(f => f.key === 'contatos_ids');
+      const mainFields = activeFields.filter(f => f.key !== 'contatos_ids');
+      const mainColMeta = mainFields.length > 0
+        ? (() => {
+            const totalU = mainFields.reduce((s, f) => s + (f.widthFactor || 1), 0);
+            const uW = (pageW - margin * 2) / totalU;
+            return mainFields.reduce((acc, f) => {
+              const prev = acc.length ? acc[acc.length - 1] : null;
+              const x = prev ? prev.x + prev.w : margin;
+              acc.push({ x, w: (f.widthFactor || 1) * uW });
+              return acc;
+            }, []);
+          })()
+        : colMeta;
+
+      // Se contatos está selecionado, recoloca o cabeçalho usando apenas mainFields
+      if (contatosField) {
+        // Redesenha header com mainFields apenas
+        y = 20;
+        doc.setFillColor(245, 166, 35);
+        doc.rect(margin, y, pageW - margin * 2, rowH, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(7);
+        doc.setFont(undefined, 'bold');
+        mainFields.forEach((f, i) => {
+          doc.text(f.label, mainColMeta[i].x + 1, y + 4.5, { maxWidth: mainColMeta[i].w - 2 });
+        });
+        y += rowH;
+      }
+
+      const usedFields = contatosField ? mainFields : activeFields;
+      const usedColMeta = contatosField ? mainColMeta : colMeta;
+
       data.forEach((row, ri) => {
         let maxLines = 1;
-        activeFields.forEach((f, i) => {
+        usedFields.forEach((f, i) => {
           const txt = cellValue(row, f);
-          const lines = doc.splitTextToSize(txt, colMeta[i].w - 2);
+          const lines = doc.splitTextToSize(txt, usedColMeta[i].w - 2);
           if (lines.length > maxLines) maxLines = lines.length;
         });
         const dynamicRowH = maxLines * lineH + cellPadV * 2;
 
-        if (y + dynamicRowH > doc.internal.pageSize.getHeight() - 10) {
+        // Linha de contatos (se existir)
+        const contatosTxt = contatosField ? cellValue(row, contatosField) : null;
+        const hasContatos = contatosTxt && contatosTxt !== '—';
+        const contatosLines = hasContatos ? doc.splitTextToSize(contatosTxt, pageW - margin * 2 - 2) : [];
+        const subRowH = hasContatos ? contatosLines.length * lineH + cellPadV * 2 : 0;
+
+        const totalH = dynamicRowH + subRowH;
+
+        if (y + totalH > doc.internal.pageSize.getHeight() - 10) {
           doc.addPage();
           y = 14;
         }
+
+        // Fundo linha principal
         if (ri % 2 === 0) {
           doc.setFillColor(250, 250, 250);
           doc.rect(margin, y, pageW - margin * 2, dynamicRowH, 'F');
         }
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(7);
         doc.setTextColor(40, 40, 40);
-        activeFields.forEach((f, i) => {
+        usedFields.forEach((f, i) => {
           const txt = cellValue(row, f);
-          const lines = doc.splitTextToSize(txt, colMeta[i].w - 2);
-          doc.text(lines, colMeta[i].x + 1, y + cellPadV + lineH * 0.8);
+          const lines = doc.splitTextToSize(txt, usedColMeta[i].w - 2);
+          doc.text(lines, usedColMeta[i].x + 1, y + cellPadV + lineH * 0.8);
         });
-        doc.setDrawColor(230, 230, 230);
-        doc.line(margin, y + dynamicRowH, pageW - margin, y + dynamicRowH);
         y += dynamicRowH;
+
+        // Sub-linha de contatos
+        if (hasContatos) {
+          doc.setFillColor(240, 245, 255);
+          doc.rect(margin, y, pageW - margin * 2, subRowH, 'F');
+          doc.setTextColor(60, 80, 140);
+          doc.setFont(undefined, 'italic');
+          doc.text(contatosLines, margin + 2, y + cellPadV + lineH * 0.8);
+          doc.setFont(undefined, 'normal');
+          doc.setTextColor(40, 40, 40);
+          y += subRowH;
+        }
+
+        doc.setDrawColor(230, 230, 230);
+        doc.line(margin, y, pageW - margin, y);
       });
 
       doc.save(`${title.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`);

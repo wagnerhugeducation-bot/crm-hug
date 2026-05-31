@@ -1,5 +1,5 @@
-import { Menu, Bell, Search, ChevronDown, LogOut, User } from 'lucide-react';
-import { useState } from 'react';
+import { Menu, Bell, ChevronDown, LogOut, User, Moon, Sun } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import {
@@ -20,6 +20,22 @@ const roleLabels = {
 
 export default function Header({ onMenuToggle, title }) {
   const { user } = useAuth();
+  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
+
+  const toggleDark = () => {
+    const next = !isDark;
+    setIsDark(next);
+    document.documentElement.classList.toggle('dark', next);
+    localStorage.setItem('theme', next ? 'dark' : 'light');
+  };
+
+  useEffect(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'dark') {
+      setIsDark(true);
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
 
   const initials = user?.full_name
     ? user.full_name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
@@ -44,6 +60,11 @@ export default function Header({ onMenuToggle, title }) {
 
       {/* Right actions */}
       <div className="flex items-center gap-2">
+        {/* Dark mode toggle */}
+        <button onClick={toggleDark} className="p-2 rounded-lg hover:bg-muted transition-colors" title={isDark ? 'Modo claro' : 'Modo escuro'}>
+          {isDark ? <Sun className="w-5 h-5 text-muted-foreground" /> : <Moon className="w-5 h-5 text-muted-foreground" />}
+        </button>
+
         {/* Notifications */}
         <button className="p-2 rounded-lg hover:bg-muted transition-colors relative">
           <Bell className="w-5 h-5 text-muted-foreground" />
