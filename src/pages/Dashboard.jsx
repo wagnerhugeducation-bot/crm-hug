@@ -46,13 +46,18 @@ export default function Dashboard() {
         ? base44.functions.invoke('getSubordinados', {}).then(r => r.data?.subordinados || [])
         : Promise.resolve([]);
 
+      const fetchAdmin = async (entity) => {
+        const r = await base44.functions.invoke('getAdminData', { entity });
+        return r.data?.data || [];
+      };
+
       const [orgaos, contatos, oportunidades, todasTarefas, listaSubordinados, scores] = await Promise.all([
-        base44.entities.OrgaoPublico.list(),
-        base44.entities.Contato.list(),
-        base44.entities.Oportunidade.list(),
-        base44.entities.Tarefa.list(),
+        isAdmin ? fetchAdmin('OrgaoPublico') : base44.entities.OrgaoPublico.list(),
+        isAdmin ? fetchAdmin('Contato') : base44.entities.Contato.list(),
+        isAdmin ? fetchAdmin('Oportunidade') : base44.entities.Oportunidade.list(),
+        isAdmin ? fetchAdmin('Tarefa') : base44.entities.Tarefa.list(),
         subordinadosPromise,
-        base44.entities.ScoreBANT.list(),
+        isAdmin ? fetchAdmin('ScoreBANT') : base44.entities.ScoreBANT.list(),
       ]);
       setAllOrgaos(orgaos);
       setAllContatos(contatos);

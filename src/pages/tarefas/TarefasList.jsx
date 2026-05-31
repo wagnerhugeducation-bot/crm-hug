@@ -85,8 +85,9 @@ export default function TarefasList() {
     let responsavelUsuarios = [];
 
     if (isAdmin()) {
-      // Admin: vê tudo, usa lista completa do useUsuariosMap
-      tarefas = await base44.entities.Tarefa.list('-created_date');
+      // Admin: vê tudo via service role (bypassa RLS)
+      const res = await base44.functions.invoke('getAdminData', { entity: 'Tarefa' });
+      tarefas = res.data?.data || [];
       todosUsuarios = usuariosAdmin;
       responsavelUsuarios = usuariosAdmin;
     } else {
