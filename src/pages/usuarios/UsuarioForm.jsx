@@ -49,8 +49,10 @@ export default function UsuarioForm() {
     if (!inviteEmail.trim()) return;
     setIsLoading(true);
     try {
-      await base44.users.inviteUser(inviteEmail, form.role === 'Administrador' ? 'admin' : 'user');
-      toast.success(`Convite enviado para ${inviteEmail}.`);
+      // Sempre convida como 'user' (padrão da plataforma).
+      // O perfil customizado (Gestor, Comercial, etc.) é definido após o usuário aceitar o convite.
+      await base44.users.inviteUser(inviteEmail, 'user');
+      toast.success(`Convite enviado para ${inviteEmail}. Após aceitar, defina o perfil de acesso na edição do usuário.`);
       navigate('/usuarios');
     } catch (err) {
       toast.error(err.message || 'Falha ao enviar convite.');

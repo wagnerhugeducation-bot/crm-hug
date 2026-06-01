@@ -76,6 +76,11 @@
           }
         },
         {
+          "user_condition": {
+            "role": "Administrador"
+          }
+        },
+        {
           "created_by": "{{user.email}}"
         },
         {
@@ -94,6 +99,11 @@
           }
         },
         {
+          "user_condition": {
+            "role": "Administrador"
+          }
+        },
+        {
           "created_by": "{{user.email}}"
         },
         {
@@ -109,6 +119,11 @@
         {
           "user_condition": {
             "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "Administrador"
           }
         },
         {
