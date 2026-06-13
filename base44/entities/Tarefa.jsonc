@@ -136,13 +136,19 @@
           }
         },
         {
-          "created_by": "{{user.email}}"
+          "$and": [
+            {
+              "created_by": "{{user.email}}"
+            },
+            {
+              "data.status": {
+                "$ne": "Conclu\u00edda"
+              }
+            }
+          ]
         },
         {
           "data.responsavel_id": "{{user.email}}"
-        },
-        {
-          "data.responsavel_gestor_id": "{{user.email}}"
         }
       ]
     },
