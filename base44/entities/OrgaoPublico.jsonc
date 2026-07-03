@@ -261,24 +261,33 @@
       "type": "number",
       "description": "Ano de refer\u00eancia do IDEB"
     },
-    "alunos_neurodivergentes": {
-      "type": "number",
-      "description": "N\u00famero de Alunos com Neuro-diverg\u00eancia"
-    },
-    "alunos_deficiencia": {
-      "type": "number",
-      "description": "N\u00famero de Alunos com Defici\u00eancia"
-    },
     "profissionais_aee": {
       "type": "number",
       "description": "N\u00famero de Profissionais AEE"
     },
-    "tipos_necessidades": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "Tipos de necessidades identificadas"
+    "nec_visual": {
+      "type": "number",
+      "description": "Quantidade de alunos com necessidades Visual"
+    },
+    "nec_auditiva": {
+      "type": "number",
+      "description": "Quantidade de alunos com necessidades Auditiva"
+    },
+    "nec_motora": {
+      "type": "number",
+      "description": "Quantidade de alunos com necessidades Motora"
+    },
+    "nec_intelectual": {
+      "type": "number",
+      "description": "Quantidade de alunos com necessidades Intelectual"
+    },
+    "nec_tea": {
+      "type": "number",
+      "description": "Quantidade de alunos com TEA"
+    },
+    "nec_outros": {
+      "type": "number",
+      "description": "Quantidade de alunos com Outras necessidades"
     },
     "modalidades_ensino": {
       "type": "array",

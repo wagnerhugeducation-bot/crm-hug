@@ -33,7 +33,14 @@ const ESCOLAS_NIVEIS = [
   { key: 'esc_medio', label: 'Médio' },
 ];
 
-const TIPOS_NECESSIDADES = ['Visual', 'Auditiva', 'Motora', 'Intelectual', 'TEA', 'Outros'];
+const NECESSIDADES_FIELDS = [
+  { key: 'nec_visual', label: 'Visual' },
+  { key: 'nec_auditiva', label: 'Auditiva' },
+  { key: 'nec_motora', label: 'Motora' },
+  { key: 'nec_intelectual', label: 'Intelectual' },
+  { key: 'nec_tea', label: 'TEA' },
+  { key: 'nec_outros', label: 'Outros' },
+];
 const MODALIDADES_ENSINO = [
   'Educação Especial',
   'Educação do Campo',
@@ -139,33 +146,21 @@ export default function QuadroEducacional({ form, set }) {
         </div>
       </div>
 
-      {/* Inclusão */}
+      {/* Inclusão e Diversidade */}
       <div>
         <p className="text-sm font-medium text-foreground mb-3">Inclusão e Diversidade</p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <div>
-            <Label className="text-xs text-muted-foreground">Alunos com Neuro-divergência</Label>
-            <NumericInput value={form.alunos_neurodivergentes} onChange={v => set('alunos_neurodivergentes', v)} />
-          </div>
-          <div>
-            <Label className="text-xs text-muted-foreground">Alunos com Deficiência</Label>
-            <NumericInput value={form.alunos_deficiencia} onChange={v => set('alunos_deficiencia', v)} />
-          </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           <div>
             <Label className="text-xs text-muted-foreground">Profissionais AEE</Label>
             <NumericInput value={form.profissionais_aee} onChange={v => set('profissionais_aee', v)} />
           </div>
+          {NECESSIDADES_FIELDS.map(({ key, label }) => (
+            <div key={key}>
+              <Label className="text-xs text-muted-foreground">Necessidade — {label}</Label>
+              <NumericInput value={form[key]} onChange={v => set(key, v)} />
+            </div>
+          ))}
         </div>
-      </div>
-
-      {/* Tipos de Necessidades */}
-      <div>
-        <p className="text-sm font-medium text-foreground mb-1">Tipos de Necessidades Identificadas</p>
-        <MultiCheckbox
-          options={TIPOS_NECESSIDADES}
-          value={form.tipos_necessidades}
-          onChange={v => set('tipos_necessidades', v)}
-        />
       </div>
 
       {/* Modalidades de Ensino */}

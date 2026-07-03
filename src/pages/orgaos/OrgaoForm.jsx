@@ -36,8 +36,10 @@ const defaultForm = {
   doc_ef1: null, doc_ef2: null, doc_em: null,
   esc_infantil: null, esc_fundamental: null, esc_medio: null,
   ideb_ef1: null, ideb_ef2: null, ideb_em: null, ideb_ano: null,
-  alunos_neurodivergentes: null, alunos_deficiencia: null, profissionais_aee: null,
-  tipos_necessidades: [], modalidades_ensino: [],
+  profissionais_aee: null,
+  nec_visual: null, nec_auditiva: null, nec_motora: null,
+  nec_intelectual: null, nec_tea: null, nec_outros: null,
+  modalidades_ensino: [],
   potencial_orgao: null,
 };
 
