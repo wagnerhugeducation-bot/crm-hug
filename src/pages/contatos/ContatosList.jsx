@@ -1,11 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
-
-const fetchAsAdmin = async (entity) => {
-  const res = await base44.functions.invoke('getAdminData', { entity });
-  return res.data?.data || [];
-};
 import { Plus, Users, Pencil, Trash2, Eye, Download } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -50,10 +45,9 @@ export default function ContatosList() {
 
   const load = async () => {
     setIsLoading(true);
-    const adminMode = isAdmin();
     const [contatos, orgaosList] = await Promise.all([
-      adminMode ? fetchAsAdmin('Contato') : base44.entities.Contato.list('-created_date'),
-      adminMode ? fetchAsAdmin('OrgaoPublico') : base44.entities.OrgaoPublico.list(),
+      base44.entities.Contato.list('-created_date'),
+      base44.entities.OrgaoPublico.list(),
     ]);
     const map = {};
     orgaosList.forEach(o => { map[o.id] = o.nome; });

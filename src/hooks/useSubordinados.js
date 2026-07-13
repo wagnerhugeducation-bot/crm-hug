@@ -21,9 +21,9 @@ export function useSubordinados() {
       return;
     }
 
-    base44.functions.invoke('getSubordinados', {})
+    base44.entities.User.list()
       .then(res => {
-        setSubordinados(res.data?.subordinados || []);
+        setSubordinados(res || []);
         setIsLoading(false);
       })
       .catch(() => {

@@ -1,11 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
-
-const fetchAsAdmin = async (entity) => {
-  const res = await base44.functions.invoke('getAdminData', { entity });
-  return res.data?.data || [];
-};
 import { Plus, Building2, Pencil, Trash2, Eye, Download } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -55,7 +50,7 @@ export default function OrgaosList() {
 
   const load = async () => {
     setIsLoading(true);
-    const res = isAdmin() ? await fetchAsAdmin('OrgaoPublico') : await base44.entities.OrgaoPublico.list('-created_date');
+    const res = await base44.entities.OrgaoPublico.list('-created_date');
     setData(res);
     setIsLoading(false);
   };

@@ -80,7 +80,7 @@ export default function TarefasList() {
   useEffect(() => {
     Promise.all([
       base44.entities.OrgaoPublico.list(),
-      base44.functions.invoke('getOportunidadesHierarquia', {}).then(r => r.data?.oportunidades || []),
+      base44.entities.Oportunidade.list(),
       base44.entities.Contato.list(),
     ]).then(([orgs, ops, cts]) => {
       setOrgaos(orgs);
@@ -98,41 +98,19 @@ export default function TarefasList() {
     let responsavelUsuarios = [];
 
     if (isAdmin()) {
-      // Admin: vê tudo via service role (bypassa RLS)
-      const res = await base44.functions.invoke('getAdminData', { entity: 'Tarefa' });
-      tarefas = res.data?.data || [];
+      // Admin: RLS permite ver todos os registros
+      tarefas = await base44.entities.Tarefa.list('-created_date');
       todosUsuarios = usuariosAdmin;
       responsavelUsuarios = usuariosAdmin;
     } else {
-      // Gestor e demais: carrega subordinados via backend
-      const res = await base44.functions.invoke('getSubordinados', {});
-      const subs = res.data?.subordinados || [];
+      // Não-admin: RLS retorna apenas registros permitidos (próprios + subordinados)
       const meUsuario = { email: user.email, full_name: user.full_name, nickname: user.nickname };
-      const equipe = [meUsuario, ...subs];
-      const emailsEquipe = equipe.map(s => s.email);
-
-      // Monta mapa de usuários visíveis para exibição de nicknames
       const mapa = {};
-      equipe.forEach(u => { mapa[u.email] = u; });
+      mapa[user.email] = meUsuario;
       setUsuariosMap(mapa);
-
-      if (isGestor && isGestor()) {
-        // Gestor: tarefas da equipe
-        tarefas = await base44.entities.Tarefa.list('-created_date');
-        tarefas = tarefas.filter(t =>
-          emailsEquipe.includes(t.responsavel_id) ||
-          emailsEquipe.includes(t.responsavel_gestor_id) ||
-          emailsEquipe.includes(t.created_by)
-        );
-        todosUsuarios = equipe; // criador: todos da equipe
-        responsavelUsuarios = equipe; // responsável: gestor + subordinados
-      } else {
-        // Comercial/assistente: apenas as próprias tarefas
-        tarefas = await base44.entities.Tarefa.list('-created_date');
-        tarefas = tarefas.filter(t => t.responsavel_id === user.email || t.created_by === user.email);
-        todosUsuarios = equipe; // criador: a equipe toda (para exibir nomes)
-        responsavelUsuarios = [meUsuario]; // responsável: apenas si mesmo
-      }
+      tarefas = await base44.entities.Tarefa.list('-created_date');
+      todosUsuarios = [meUsuario];
+      responsavelUsuarios = [meUsuario];
     }
 
     setUsuariosVisiveis(todosUsuarios);

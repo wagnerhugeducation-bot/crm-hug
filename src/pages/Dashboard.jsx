@@ -41,23 +41,18 @@ export default function Dashboard() {
     if (loaded) return;
     setLoaded(true);
     const load = async () => {
-      // Subordinados para o filtro (admin + gestor via backend function)
+      // Subordinados para o filtro (admins veem todos via RLS; demais veem apenas a si mesmos)
       const subordinadosPromise = podesFiltrar
-        ? base44.functions.invoke('getSubordinados', {}).then(r => r.data?.subordinados || [])
+        ? base44.entities.User.list().catch(() => [])
         : Promise.resolve([]);
 
-      const fetchAdmin = async (entity) => {
-        const r = await base44.functions.invoke('getAdminData', { entity });
-        return r.data?.data || [];
-      };
-
       const [orgaos, contatos, oportunidades, todasTarefas, listaSubordinados, scores] = await Promise.all([
-        isAdmin ? fetchAdmin('OrgaoPublico') : base44.entities.OrgaoPublico.list(),
-        isAdmin ? fetchAdmin('Contato') : base44.entities.Contato.list(),
-        isAdmin ? fetchAdmin('Oportunidade') : base44.entities.Oportunidade.list(),
-        isAdmin ? fetchAdmin('Tarefa') : base44.entities.Tarefa.list(),
+        base44.entities.OrgaoPublico.list(),
+        base44.entities.Contato.list(),
+        base44.entities.Oportunidade.list(),
+        base44.entities.Tarefa.list(),
         subordinadosPromise,
-        isAdmin ? fetchAdmin('ScoreBANT') : base44.entities.ScoreBANT.list(),
+        base44.entities.ScoreBANT.list(),
       ]);
       setAllOrgaos(orgaos);
       setAllContatos(contatos);

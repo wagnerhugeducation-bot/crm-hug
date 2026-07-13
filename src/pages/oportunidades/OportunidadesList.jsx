@@ -2,11 +2,6 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { useUsuariosMap } from '@/hooks/useUsuariosMap';
-
-const fetchAsAdmin = async (entity) => {
-  const res = await base44.functions.invoke('getAdminData', { entity });
-  return res.data?.data || [];
-};
 import { Plus, Target, Pencil, Trash2, Eye, Download } from 'lucide-react';
 import ExportModal from '@/components/exportacao/ExportModal';
 
@@ -74,13 +69,12 @@ export default function OportunidadesList() {
   const load = async () => {
     if (!user) return;
     setIsLoading(true);
-    const adminMode = isAdminFn();
     const [ops, orgList, bantList, modList, tarefasList] = await Promise.all([
-    adminMode ? fetchAsAdmin('Oportunidade') : base44.entities.Oportunidade.list('-created_date'),
-    adminMode ? fetchAsAdmin('OrgaoPublico') : base44.entities.OrgaoPublico.list(),
-    adminMode ? fetchAsAdmin('ScoreBANT') : base44.entities.ScoreBANT.list(),
+    base44.entities.Oportunidade.list('-created_date'),
+    base44.entities.OrgaoPublico.list(),
+    base44.entities.ScoreBANT.list(),
     base44.entities.ModalidadeLicitacao.list(),
-    adminMode ? fetchAsAdmin('Tarefa') : base44.entities.Tarefa.filter({ status: 'Concluída' })]
+    base44.entities.Tarefa.filter({ status: 'Concluída' })]
     );
     setModalidades([...LICITACOES_PADRAO, ...modList.map((m) => m.nome)]);
     const map = {};

@@ -1,11 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
-
-const fetchAsAdmin = async (entity) => {
-  const res = await base44.functions.invoke('getAdminData', { entity });
-  return res.data?.data || [];
-};
 import { Plus, FileText, Trash2, ExternalLink, Download } from 'lucide-react';
 import ExportModal from '@/components/exportacao/ExportModal';
 
@@ -45,7 +40,7 @@ export default function DocumentosList() {
 
   const load = async () => {
     setIsLoading(true);
-    const res = isAdmin() ? await fetchAsAdmin('Documento') : await base44.entities.Documento.list('-created_date');
+    const res = await base44.entities.Documento.list('-created_date');
     setData(res);
     setIsLoading(false);
   };
