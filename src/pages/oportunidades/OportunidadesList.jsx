@@ -46,6 +46,7 @@ export default function OportunidadesList() {
   const [orgaoPotencialMap, setOrgaoPotencialMap] = useState({});
   const [bantMap, setBantMap] = useState({});
   const [ultimaTarefaMap, setUltimaTarefaMap] = useState({});
+  const [temAgendadaMap, setTemAgendadaMap] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -74,7 +75,7 @@ export default function OportunidadesList() {
     base44.entities.OrgaoPublico.list(),
     base44.entities.ScoreBANT.list(),
     base44.entities.ModalidadeLicitacao.list(),
-    base44.entities.Tarefa.filter({ status: 'Concluída' })]
+    base44.entities.Tarefa.list('-updated_date')]
     );
     setModalidades([...LICITACOES_PADRAO, ...modList.map((m) => m.nome)]);
     const map = {};
@@ -85,16 +86,21 @@ export default function OportunidadesList() {
     const bm = {};
     bantList.forEach((b) => {bm[b.oportunidade_id] = b;});
     setBantMap(bm);
-    // Mapa: oportunidade_id → data da última tarefa concluída
+    // Mapa: oportunidade_id → data da última atividade + indicador de tarefa agendada
     const tm = {};
+    const agendadas = {};
     tarefasList.forEach((t) => {
-      if (!t.oportunidade_id) return;
-      const dataConc = t.concluida_em || t.updated_date;
-      if (!tm[t.oportunidade_id] || new Date(dataConc) > new Date(tm[t.oportunidade_id])) {
-        tm[t.oportunidade_id] = dataConc;
+      if (!t.oportunidade_id || t.status === 'Cancelada') return;
+      if (t.status === 'Pendente' || t.status === 'Em Andamento') {
+        agendadas[t.oportunidade_id] = true;
+      }
+      const dataRef = t.concluida_em || t.updated_date;
+      if (!tm[t.oportunidade_id] || new Date(dataRef) > new Date(tm[t.oportunidade_id])) {
+        tm[t.oportunidade_id] = dataRef;
       }
     });
     setUltimaTarefaMap(tm);
+    setTemAgendadaMap(agendadas);
     setData(ops);
     setIsLoading(false);
   };
@@ -134,7 +140,12 @@ export default function OportunidadesList() {
 
   const getAtividadeDot = (oportunidadeId) => {
     const ultima = ultimaTarefaMap[oportunidadeId];
-    if (!ultima) return { color: 'bg-red-500', title: 'Sem tarefas concluídas' };
+    const temAgendada = temAgendadaMap[oportunidadeId];
+    if (!ultima && !temAgendada) return { color: 'bg-red-500', title: 'Sem tarefas' };
+    if (temAgendada) {
+      const dias = ultima ? Math.floor((Date.now() - new Date(ultima).getTime()) / (1000 * 60 * 60 * 24)) : 0;
+      return { color: 'bg-green-500', title: `Tarefa agendada • última atividade há ${dias} dia(s)` };
+    }
     const dias = Math.floor((Date.now() - new Date(ultima).getTime()) / (1000 * 60 * 60 * 24));
     if (dias <= 15) return { color: 'bg-green-500', title: `Última tarefa há ${dias} dia(s)` };
     if (dias <= 30) return { color: 'bg-yellow-400', title: `Última tarefa há ${dias} dia(s)` };
