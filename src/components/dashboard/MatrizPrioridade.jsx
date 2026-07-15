@@ -13,9 +13,14 @@ const ETAPA_SCORE = {
 
 const MODALIDADE_GRAU_TO_SCORE = { 1: 20, 2: 40, 3: 60, 4: 80, 5: 100 };
 
-function getSaude(oportunidadeId, ultimaTarefaMap) {
+function getSaude(oportunidadeId, ultimaTarefaMap, temAgendadaMap) {
   const ultima = ultimaTarefaMap[oportunidadeId];
-  if (!ultima) return { dias: null, pontos: 0, cor: 'vermelho', label: 'Sem interação' };
+  const temAgendada = temAgendadaMap[oportunidadeId];
+  if (!ultima && !temAgendada) return { dias: null, pontos: 0, cor: 'vermelho', label: 'Sem interação' };
+  if (temAgendada) {
+    const dias = ultima ? Math.floor((Date.now() - new Date(ultima).getTime()) / (1000 * 60 * 60 * 24)) : 0;
+    return { dias, pontos: 15, cor: 'verde', label: `Tarefa agendada • ${dias}d atrás` };
+  }
   const dias = Math.floor((Date.now() - new Date(ultima).getTime()) / (1000 * 60 * 60 * 24));
   if (dias <= 15) return { dias, pontos: 15, cor: 'verde', label: `${dias}d atrás` };
   if (dias <= 30) return { dias, pontos: 8, cor: 'amarelo', label: `${dias}d atrás` };
@@ -150,11 +155,22 @@ export default function MatrizPrioridade({ oportunidades, bantScores, tarefas, o
   const ultimaTarefaMap = useMemo(() => {
     const m = {};
     (tarefas || []).forEach(t => {
-      if (!t.oportunidade_id) return;
-      const dt = t.concluida_em || (t.status === 'Concluída' ? t.updated_date : null);
+      if (!t.oportunidade_id || t.status === 'Cancelada') return;
+      const dt = t.concluida_em || t.updated_date;
       if (!dt) return;
       if (!m[t.oportunidade_id] || new Date(dt) > new Date(m[t.oportunidade_id])) {
         m[t.oportunidade_id] = dt;
+      }
+    });
+    return m;
+  }, [tarefas]);
+
+  const temAgendadaMap = useMemo(() => {
+    const m = {};
+    (tarefas || []).forEach(t => {
+      if (!t.oportunidade_id) return;
+      if (t.status === 'Pendente' || t.status === 'Em Andamento') {
+        m[t.oportunidade_id] = true;
       }
     });
     return m;
@@ -184,7 +200,7 @@ export default function MatrizPrioridade({ oportunidades, bantScores, tarefas, o
     return (oportunidades || []).map(op => {
       const bant = bantMap[op.id] || 0;
       const etapaScore = ETAPA_SCORE[op.etapa_pipeline] || 10;
-      const saude = getSaude(op.id, ultimaTarefaMap);
+      const saude = getSaude(op.id, ultimaTarefaMap, temAgendadaMap);
       const maturidade = etapaScore + bant + saude.pontos;
       const valorNorm = ((op.valor_estimado || 0) / maxValor) * 100;
       const modScore = getModalidadeScore(op.tipo_licitacao);
@@ -198,7 +214,7 @@ export default function MatrizPrioridade({ oportunidades, bantScores, tarefas, o
         bant, saude, x: Math.round(xNorm * 10) / 10, y: Math.round(yNorm * 10) / 10, raio,
       };
     });
-  }, [oportunidades, bantMap, ultimaTarefaMap, maxValor, getModalidadeScore]);
+  }, [oportunidades, bantMap, ultimaTarefaMap, temAgendadaMap, maxValor, getModalidadeScore]);
 
   const pontosFiltrados = useMemo(() => pontos.filter(p => {
     if (filtroResponsavel !== 'all' && p.responsavel_id !== filtroResponsavel) return false;
