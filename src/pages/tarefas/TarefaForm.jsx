@@ -43,7 +43,7 @@ export default function TarefaForm() {
   useEffect(() => {
     const opId = params.get('oportunidade_id');
     const loadOps = user
-      ? base44.functions.invoke('getOportunidadesHierarquia', {}).then(res => res.data?.oportunidades || [])
+      ? base44.entities.Oportunidade.list('-created_date')
       : Promise.resolve([]);
     const loadOrgaos = base44.entities.OrgaoPublico.list();
     const loadContatos = base44.entities.Contato.list();
